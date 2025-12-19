@@ -1,9 +1,13 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
+import Lenis from 'lenis';
 
 // Register GSAP Plugin
 gsap.registerPlugin(ScrollTrigger);
+
+// --- HELPER: Linear Interpolation for smoothing ---
+const lerp = (start, end, factor) => start + (end - start) * factor;
 
 const Athera = () => {
   // --- Refs ---
@@ -11,6 +15,7 @@ const Athera = () => {
   const wrapperRef = useRef(null);
   const worldRef = useRef(null);
   const audioRef = useRef(null); 
+  const blocksRef = useRef(null); // NEW: Ref for transition blocks
   
   const part1Ref = useRef(null);
   const part2Ref = useRef(null);
@@ -24,8 +29,46 @@ const Athera = () => {
   const diagonal2Ref = useRef(null);
   const scrollingTextRef = useRef(null);
 
+  // --- Refs for Smoothing Physics ---
+  const scrollSpeedRef = useRef(0);
+  const currentSkewRef = useRef(0); 
+  const currentScaleRef = useRef(1); 
+
+  // --- CONFIGURATION ---
+  const SCROLL_DURATION = 1.5; 
+
   // --- Audio State ---
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+
+  // --- SMOOTH SCROLL SETUP (LENIS) ---
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: SCROLL_DURATION, 
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+      direction: 'vertical',
+      gestureDirection: 'vertical',
+      smooth: true,
+      mouseMultiplier: 1, 
+      smoothTouch: false,
+      touchMultiplier: 2,
+    });
+
+    lenis.on('scroll', (e) => {
+      ScrollTrigger.update();
+      scrollSpeedRef.current = e.velocity; 
+    });
+
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+
+    gsap.ticker.lagSmoothing(0);
+
+    return () => {
+      gsap.ticker.remove(lenis.raf);
+      lenis.destroy();
+    };
+  }, []);
 
   const toggleAudio = () => {
     if (audioRef.current) {
@@ -39,8 +82,28 @@ const Athera = () => {
   };
 
   useLayoutEffect(() => {
+    // Force scroll to top on reload
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
     const ctx = gsap.context(() => {
       
+      // --- NEW: White Blocks Transition Animation ---
+      const blocks = blocksRef.current.querySelectorAll('.t-block');
+      gsap.to(blocks, {
+        y: "-100%",
+        stagger: 0.1,
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".hero-section", // We added this class to the hero div
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+        }
+      });
+
       // 1. Diagonal Cards Animation
       if (diagonal1Ref.current) {
         gsap.to(diagonal1Ref.current, {
@@ -81,18 +144,41 @@ const Athera = () => {
         let textTransX = 100; 
         let textOpacity = 0; 
 
-        // Text Movement
+        // --- UPDATED: Text Movement Calculation ---
         if (p > 0.20 && p < 0.80) {
             const textProgress = (p - 0.20) / 0.60; 
-            textTransX = 100 - (textProgress * 300); 
+            textTransX = 120 - (textProgress * 500); 
             textOpacity = 1;
         } else {
             textOpacity = 0;
         }
         
         if (scrollingTextRef.current) {
-          scrollingTextRef.current.style.transform = `translateX(${textTransX}vw)`;
-          scrollingTextRef.current.style.opacity = textOpacity;
+          // --- Smooth Physics Logic ---
+          const targetVelocity = scrollSpeedRef.current;
+          
+          // 1. Calculate Target Skew (Clamp at 20deg)
+          const skewStrength = 0.25; 
+          let targetSkew = targetVelocity * skewStrength;
+          targetSkew = Math.max(Math.min(targetSkew, 20), -20); 
+
+          // 2. Calculate Target Scale (Clamp max stretch)
+          const scaleStrength = 0.005;
+          let targetScale = 1 + Math.abs(targetVelocity * scaleStrength);
+          targetScale = Math.min(targetScale, 1.5); 
+
+          // 3. LERP
+          currentSkewRef.current = lerp(currentSkewRef.current, targetSkew, 0.1);
+          currentScaleRef.current = lerp(currentScaleRef.current, targetScale, 0.1);
+
+          // 4. Apply Transform
+          gsap.set(scrollingTextRef.current, {
+             x: `${textTransX}vw`,
+             skewX: currentSkewRef.current,
+             scaleX: currentScaleRef.current,
+             opacity: textOpacity,
+             force3D: true 
+          });
         }
 
         // Coordinate Logic
@@ -161,7 +247,7 @@ const Athera = () => {
         start: "top top",
         end: "+=4000",
         pin: true,
-        scrub: 0.1,
+        scrub: 0.1, 
         onUpdate: (self) => renderWorld(self.progress)
       });
 
@@ -171,7 +257,7 @@ const Athera = () => {
   }, []);
 
   const handleRestart = () => {
-    wrapperRef.current?.scrollIntoView({ behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const textQuote = "Improving myself to be a deserved one for the desired thing";
@@ -193,6 +279,22 @@ const Athera = () => {
         @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@300;900&display=swap');
 
         /* RESET & BASICS */
+        html.lenis {
+          height: auto;
+        }
+        
+        .lenis.lenis-smooth {
+          scroll-behavior: auto;
+        }
+        
+        .lenis.lenis-smooth [data-lenis-prevent] {
+          overscroll-behavior: contain;
+        }
+        
+        .lenis.lenis-stopped {
+          overflow: hidden;
+        }
+
         .athera-container { 
             background-color: transparent;
             color: #fff; 
@@ -212,6 +314,24 @@ const Athera = () => {
             opacity: 0.4;
             z-index: -1; 
             pointer-events: none;
+        }
+
+        /* --- NEW: White Blocks Container --- */
+        .transition-blocks-layer {
+          position: absolute;
+          top: 100vh; /* Starts right after the hero section */
+          left: 0;
+          width: 100%;
+          height: 100vh;
+          display: flex;
+          z-index: 5;
+          pointer-events: none;
+        }
+        .t-block {
+          flex: 1;
+          height: 100%;
+          background: white;
+          transform: translateY(0); /* Will move to -100% on scroll */
         }
 
         /* NAV BAR */
@@ -325,12 +445,26 @@ const Athera = () => {
         .imm-h1 { font-size: 3rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
         .imm-tag { background: #ff0000; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.75rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
         
-        .horizontal-quote { font-size: 6vw; white-space: pre; text-transform: uppercase; font-weight: 900; color: #fff; border-left: 20px solid #ff0000; padding-left: 40px; position: absolute; top: 150vh; left: 0; z-index: 20; opacity: 0; display:flex; text-shadow: 0 4px 30px rgba(0,0,0,0.9); }
-        .wave-char { display: inline-block; animation: waveAnim 2s ease-in-out infinite; animation-delay: calc(0.05s * var(--char-index)); }
-        
-        @keyframes waveAnim { 
-            0%, 100% { transform: translateY(0); color: #fff; } 
-            50% { transform: translateY(-30px); color: #ff0000; text-shadow: 0 0 20px rgba(255, 0, 0, 0.8); } 
+        .horizontal-quote { 
+            font-size: 8vw;
+            white-space: pre; 
+            text-transform: uppercase; 
+            font-weight: 900; 
+            color: #fff; 
+            background: rgba(0, 0, 0, 0.85); 
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9);
+            padding: 2vw 4vw 2vw 40px;
+            border-left: 30px solid #ff0000;
+            position: absolute; 
+            top: 150vh; 
+            left: 0; 
+            z-index: 20; 
+            opacity: 0; 
+            display: flex; 
+            text-shadow: 0 4px 30px rgba(0,0,0,0.9); 
+            will-change: transform; 
         }
 
         /* FOOTER */
@@ -357,7 +491,8 @@ const Athera = () => {
       `}</style>
 
       {/* --- SECTION 1: HERO --- */}
-      <section style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      {/* ADDED className="hero-section" so the scroll trigger works */}
+      <section className="hero-section" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         
         <nav className="nav-bar">
           <div className="brand-logo">ATHERA</div>
@@ -380,17 +515,24 @@ const Athera = () => {
         </div>
       </section>
 
+      {/* --- NEW: TRANSITION LAYER (WHITE BLOCKS) --- */}
+      <div className="transition-blocks-layer" ref={blocksRef}>
+        <div className="t-block"></div>
+        <div className="t-block"></div>
+        <div className="t-block"></div>
+        <div className="t-block"></div>
+        <div className="t-block"></div>
+      </div>
+
       {/* --- SECTION 2: MOTION --- */}
       <section id="motion-section" className="technical-grid">
         
-        {/* --- ADDED: STICKY TEXT HOVERING OVER TRANSITION --- */}
         <div className="sticky-text">
             <span className="vision-tag">// ABOUT THE VISION</span>
             <p className="vision-main">
                 We don't just host events. We engineer <span style={{ fontWeight: 900, fontStyle: 'italic', color: '#dc2626' }}>movements.</span>
             </p>
         </div>
-        {/* ---------------------------------------------------- */}
 
         <div ref={diagonal1Ref} className="card-wrapper c1">
           <img 
@@ -437,11 +579,7 @@ const Athera = () => {
           </div>
 
           <div className="horizontal-quote" id="scrollingText" ref={scrollingTextRef}>
-            {textQuote.split('').map((char, index) => (
-              <span key={index} className="wave-char" style={{ '--char-index': index }}>
-                {char}
-              </span>
-            ))}
+            {textQuote}
           </div>
 
           <div className="imm-section" id="part3" ref={part3Ref}>
