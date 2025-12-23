@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
+import logoImg from './assets/logo.png';
 
 // Register GSAP Plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -15,7 +16,7 @@ const Athera = () => {
   const wrapperRef = useRef(null);
   const worldRef = useRef(null);
   const audioRef = useRef(null); 
-  const blocksRef = useRef(null); // NEW: Ref for transition blocks
+  const blocksRef = useRef(null); 
   
   const part1Ref = useRef(null);
   const part2Ref = useRef(null);
@@ -39,6 +40,12 @@ const Athera = () => {
 
   // --- Audio State ---
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+
+  // --- Redirect Logic ---
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    window.location.href = "/shop"; 
+  };
 
   // --- SMOOTH SCROLL SETUP (LENIS) ---
   useEffect(() => {
@@ -82,7 +89,6 @@ const Athera = () => {
   };
 
   useLayoutEffect(() => {
-    // Force scroll to top on reload
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
@@ -90,14 +96,14 @@ const Athera = () => {
 
     const ctx = gsap.context(() => {
       
-      // --- NEW: White Blocks Transition Animation ---
+      // --- White Blocks Transition Animation ---
       const blocks = blocksRef.current.querySelectorAll('.t-block');
       gsap.to(blocks, {
         y: "-100%",
         stagger: 0.1,
         ease: "none",
         scrollTrigger: {
-          trigger: ".hero-section", // We added this class to the hero div
+          trigger: ".hero-section", 
           start: "top top",
           end: "bottom top",
           scrub: true,
@@ -144,7 +150,6 @@ const Athera = () => {
         let textTransX = 100; 
         let textOpacity = 0; 
 
-        // --- UPDATED: Text Movement Calculation ---
         if (p > 0.20 && p < 0.80) {
             const textProgress = (p - 0.20) / 0.60; 
             textTransX = 120 - (textProgress * 500); 
@@ -157,21 +162,17 @@ const Athera = () => {
           // --- Smooth Physics Logic ---
           const targetVelocity = scrollSpeedRef.current;
           
-          // 1. Calculate Target Skew (Clamp at 20deg)
           const skewStrength = 0.25; 
           let targetSkew = targetVelocity * skewStrength;
           targetSkew = Math.max(Math.min(targetSkew, 20), -20); 
 
-          // 2. Calculate Target Scale (Clamp max stretch)
           const scaleStrength = 0.005;
           let targetScale = 1 + Math.abs(targetVelocity * scaleStrength);
           targetScale = Math.min(targetScale, 1.5); 
 
-          // 3. LERP
           currentSkewRef.current = lerp(currentSkewRef.current, targetSkew, 0.1);
           currentScaleRef.current = lerp(currentScaleRef.current, targetScale, 0.1);
 
-          // 4. Apply Transform
           gsap.set(scrollingTextRef.current, {
              x: `${textTransX}vw`,
              skewX: currentSkewRef.current,
@@ -182,15 +183,12 @@ const Athera = () => {
         }
 
         // Coordinate Logic
-        // PHASE 1
         if (p <= 0.15) {
             const localP = p / 0.15;
             wx = 0; wy = 0;
             c1y = localP * -scrollDistance;
             op1 = 1; op2 = 0; op3 = 0;
-        } 
-        // PHASE 2
-        else if (p > 0.15 && p <= 0.30) {
+        } else if (p > 0.15 && p <= 0.30) {
             const localP = (p - 0.15) / 0.15;
             c1y = -scrollDistance;
             wx = localP * -100;
@@ -198,17 +196,13 @@ const Athera = () => {
             op1 = 1 - localP;
             op2 = localP;
             op3 = 0;
-        }
-        // PHASE 3
-        else if (p > 0.30 && p <= 0.70) {
+        } else if (p > 0.30 && p <= 0.70) {
             const localP = (p - 0.30) / 0.40;
             wx = -100; wy = -100;
             c2y = localP * -scrollDistance; 
             c1y = -scrollDistance;
             op1 = 0; op2 = 1; op3 = 0;
-        }
-        // PHASE 4
-        else if (p > 0.70 && p <= 0.85) {
+        } else if (p > 0.70 && p <= 0.85) {
             const localP = (p - 0.70) / 0.15;
             wx = -100 + (localP * -100); 
             wy = -100 + (localP * 100);
@@ -217,9 +211,7 @@ const Athera = () => {
             op1 = 0;
             op2 = 1 - localP;
             op3 = localP;
-        }
-        // PHASE 5
-        else {
+        } else {
             const localP = (p - 0.85) / 0.15;
             wx = -200; wy = 0;
             c3y = localP * -scrollDistance;
@@ -264,36 +256,22 @@ const Athera = () => {
 
   return (
     <div ref={mainRef} className="athera-container">
-      {/* --- AUDIO COMPONENT --- */}
       <audio ref={audioRef} loop>
         <source src="/audio.mp3" type="audio/mp3" />
       </audio>
 
-      {/* --- GLOBAL FIXED BACKGROUND VIDEO --- */}
       <video autoPlay muted loop playsInline className="fixed-bg-video">
         <source src="/athera.mp4" type="video/mp4" />
       </video>
 
-      {/* --- EMBEDDED CSS --- */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@300;900&display=swap');
 
         /* RESET & BASICS */
-        html.lenis {
-          height: auto;
-        }
-        
-        .lenis.lenis-smooth {
-          scroll-behavior: auto;
-        }
-        
-        .lenis.lenis-smooth [data-lenis-prevent] {
-          overscroll-behavior: contain;
-        }
-        
-        .lenis.lenis-stopped {
-          overflow: hidden;
-        }
+        html.lenis { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto; }
+        .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+        .lenis.lenis-stopped { overflow: hidden; }
 
         .athera-container { 
             background-color: transparent;
@@ -305,48 +283,48 @@ const Athera = () => {
         }
         
         .fixed-bg-video { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            opacity: 0.4;
-            z-index: -1; 
-            pointer-events: none;
+            position: fixed; top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            object-fit: cover; opacity: 0.4;
+            z-index: -1; pointer-events: none;
         }
 
-        /* --- NEW: White Blocks Container --- */
+        /* --- White Blocks Container --- */
         .transition-blocks-layer {
-          position: absolute;
-          top: 100vh; /* Starts right after the hero section */
-          left: 0;
-          width: 100%;
-          height: 100vh;
-          display: flex;
-          z-index: 5;
-          pointer-events: none;
+          position: absolute; top: 100vh; left: 0;
+          width: 100%; height: 100vh;
+          display: flex; z-index: 5; pointer-events: none;
         }
-        .t-block {
-          flex: 1;
-          height: 100%;
-          background: white;
-          transform: translateY(0); /* Will move to -100% on scroll */
-        }
+        .t-block { flex: 1; height: 100%; background: white; transform: translateY(0); }
 
         /* NAV BAR */
         .nav-bar {
-            position: fixed;
-            top: 0; width: 100%; padding: 2rem;
+            position: fixed; top: 0; width: 100%; padding: 1.5rem 3rem;
             display: flex; justify-content: space-between; align-items: center;
             z-index: 100; box-sizing: border-box;
             background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
         }
+        
+        /* --- LOGO CSS --- */
+        .logo-circle { 
+          width: 60px; height: 60px; 
+          border-radius: 50%; overflow: hidden; 
+          border: 2px solid #dc2626; 
+          display: flex; align-items: center; justify-content: center; 
+          background: transparent; /* UPDATED: Removed black background */
+          cursor: pointer; 
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .logo-circle:hover {
+          transform: scale(1.1);
+          box-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
+        }
+        .logo-img { width: 100%; height: 100%; object-fit: cover; }
+
         .nav-links { display: flex; gap: 3rem; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.3em; font-weight: bold; }
-        .nav-links a { color: white; text-decoration: none; transition: color 0.3s; }
+        .nav-links a { color: white; text-decoration: none; transition: color 0.3s; cursor: pointer; }
         .nav-links a:hover { color: #dc2626; }
         
-        .brand-logo { font-family: 'Syncopate', sans-serif; color: #dc2626; font-size: 1.25rem; font-weight: bold; letter-spacing: -1px; }
         .reg-btn { 
             border: 1px solid #dc2626; padding: 0.5rem 1.5rem; 
             font-size: 0.65rem; font-weight: bold; text-transform: uppercase; 
@@ -369,45 +347,29 @@ const Athera = () => {
                 linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
             background-size: 60px 60px;
             mask-image: radial-gradient(circle, black 40%, transparent 95%);
-            position: relative;
-            min-height: 130vh; 
+            position: relative; min-height: 130vh; 
             padding-top: 0;
             padding-bottom: 10rem;
         }
 
-        /* STICKY TEXT STYLES */
         .sticky-text { 
-            position: sticky; 
-            top: 50%; 
-            transform: translateY(-50%); 
-            margin-left: 5rem; 
-            max-width: 32rem; 
-            z-index: 20; /* High Z-Index to hover over images */
-            padding: 2.5rem; 
+            position: sticky; top: 50%; transform: translateY(-50%); 
+            margin-left: 5rem; max-width: 32rem; z-index: 20; padding: 2.5rem; 
         }
         .vision-tag { color: #dc2626; font-weight: bold; letter-spacing: 0.5em; font-size: 0.75rem; margin-bottom: 1rem; display: block; }
         .vision-main { font-size: 2.25rem; font-weight: 300; line-height: 1.2; }
         
-        /* CARD HOVER EFFECTS */
-        .card-wrapper {
-            position: absolute;
-            z-index: 10; /* Lower Z-Index than sticky text */
-            width: 350px;
-        }
+        .card-wrapper { position: absolute; z-index: 10; width: 350px; }
         .card-wrapper.c1 { bottom: 0; right: -10%; width: 400px; }
         .card-wrapper.c2 { bottom: -10vh; left: -10%; }
 
         .interactive-card {
-            width: 100%;
-            border-radius: 4px;
-            filter: grayscale(100%);
+            width: 100%; border-radius: 4px; filter: grayscale(100%);
             transition: filter 0.5s ease;
             box-shadow: 20px 20px 60px rgba(0,0,0,0.5), -5px -5px 20px rgba(255,0,0,0.1);
         }
-        .interactive-card:hover {
-            filter: grayscale(0%);
-        }
-
+        .interactive-card:hover { filter: grayscale(0%); }
+        
         .card-meta { margin-top: 1rem; border-left: 2px solid #dc2626; padding-left: 1rem; }
         .card-meta.right { text-align: right; }
         .card-label { font-size: 10px; font-weight: bold; color: #dc2626; text-transform: uppercase; }
@@ -426,17 +388,8 @@ const Athera = () => {
         #part3 { top: 0; left: 200vw; }
         
         .inner-content { display: flex; flex-direction: column; align-items: center; z-index: 10; padding: 20px; width: 100%; }
-        
-        .inner-content > *:not(.horizontal-quote) {
-            opacity: 0;
-            transform: translateX(100px); 
-            transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
-        }
-
-        .imm-section.active .inner-content > * {
-            opacity: 1;
-            transform: translateX(0);
-        }
+        .inner-content > *:not(.horizontal-quote) { opacity: 0; transform: translateX(100px); transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1); }
+        .imm-section.active .inner-content > * { opacity: 1; transform: translateX(0); }
         .imm-section.active .inner-content > *:nth-child(1) { transition-delay: 0.1s; } 
         .imm-section.active .inner-content > *:nth-child(2) { transition-delay: 0.2s; } 
         .imm-section.active .inner-content > *:nth-child(3) { transition-delay: 0.3s; } 
@@ -446,61 +399,43 @@ const Athera = () => {
         .imm-tag { background: #ff0000; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.75rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
         
         .horizontal-quote { 
-            font-size: 8vw;
-            white-space: pre; 
-            text-transform: uppercase; 
-            font-weight: 900; 
-            color: #fff; 
-            background: rgba(0, 0, 0, 0.85); 
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.9);
-            padding: 2vw 4vw 2vw 40px;
-            border-left: 30px solid #ff0000;
-            position: absolute; 
-            top: 150vh; 
-            left: 0; 
-            z-index: 20; 
-            opacity: 0; 
-            display: flex; 
-            text-shadow: 0 4px 30px rgba(0,0,0,0.9); 
+            font-size: 8vw; white-space: pre; text-transform: uppercase; font-weight: 900; 
+            color: #fff; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 30px 60px rgba(0,0,0,0.9);
+            padding: 2vw 4vw 2vw 40px; border-left: 30px solid #ff0000;
+            position: absolute; top: 150vh; left: 0; z-index: 20; 
+            opacity: 0; display: flex; text-shadow: 0 4px 30px rgba(0,0,0,0.9); 
             will-change: transform; 
         }
 
         /* FOOTER */
-        footer { 
-            background: #000;
-            padding-top: 10rem; padding-bottom: 2.5rem; position: relative; border-top: 1px solid #18181b; 
-        }
+        footer { background: #000; padding-top: 10rem; padding-bottom: 2.5rem; position: relative; border-top: 1px solid #18181b; }
         .footer-content { max-width: 1200px; margin: 0 auto; padding: 0 2.5rem; }
         .footer-top { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 5rem; align-items: flex-end; }
-        
-        .footer-reveal-text { 
-            font-size: 8vw; line-height: 0.8; font-weight: 900; font-style: italic; 
-            color: #1a1a1a; 
-            transition: color 0.5s ease; 
-            cursor: default; user-select: none;
-            letter-spacing: -0.05em;
-        }
-        
+        .footer-reveal-text { font-size: 8vw; line-height: 0.8; font-weight: 900; font-style: italic; color: #1a1a1a; transition: color 0.5s ease; cursor: default; user-select: none; letter-spacing: -0.05em; }
         .footer-container:hover .footer-reveal-text { color: #dc2626; }
-        
         .footer-links ul { list-style: none; padding: 0; color: #52525b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; line-height: 2; }
         .footer-links a { color: inherit; text-decoration: none; transition: color 0.3s; }
         .footer-links a:hover { color: #dc2626; }
       `}</style>
 
       {/* --- SECTION 1: HERO --- */}
-      {/* ADDED className="hero-section" so the scroll trigger works */}
       <section className="hero-section" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         
         <nav className="nav-bar">
-          <div className="brand-logo">ATHERA</div>
+          {/* --- REPLACED: Text Logo with Circular Image Logo --- */}
+          <div className="logo-circle" onClick={() => window.location.reload()}>
+            <img src={logoImg} alt="Athera Logo" className="logo-img" />
+          </div>
+
           <div className="nav-links">
             <a href="#">Events</a>
             <a href="#">About Us</a>
             <a href="#">Contact</a>
+            {/* ADDED: Add to Cart Link */}
+            <a onClick={handleAddToCart}>Add to cart</a>
           </div>
+          
           <div style={{ display:'flex', alignItems:'center' }}>
             <button className="reg-btn">Register</button>
           </div>
@@ -515,7 +450,7 @@ const Athera = () => {
         </div>
       </section>
 
-      {/* --- NEW: TRANSITION LAYER (WHITE BLOCKS) --- */}
+      {/* --- TRANSITION LAYER (WHITE BLOCKS) --- */}
       <div className="transition-blocks-layer" ref={blocksRef}>
         <div className="t-block"></div>
         <div className="t-block"></div>
