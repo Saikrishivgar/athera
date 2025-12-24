@@ -252,7 +252,7 @@ const Athera = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const textQuote = "Improving myself to be a deserved one for the desired thing";
+  const textQuote = "Designing autonomous intelligence for the future";
 
   return (
     <div ref={mainRef} className="athera-container">
@@ -295,7 +295,7 @@ const Athera = () => {
           width: 100%; height: 100vh;
           display: flex; z-index: 5; pointer-events: none;
         }
-        .t-block { flex: 1; height: 100%; background: white; transform: translateY(0); }
+        .t-block { flex: 1; height: 100%;background: #000; transform: translateY(0); }
 
         /* NAV BAR */
         .nav-bar {
@@ -407,6 +407,10 @@ const Athera = () => {
             opacity: 0; display: flex; text-shadow: 0 4px 30px rgba(0,0,0,0.9); 
             will-change: transform; 
         }
+        .newses{
+        padding-left: 50px;
+        font-size: 7rem;
+        }
 
         /* FOOTER */
         footer { background: #000; padding-top: 10rem; padding-bottom: 2.5rem; position: relative; border-top: 1px solid #18181b; }
@@ -468,7 +472,7 @@ const Athera = () => {
                 We don't just host events. We engineer <span style={{ fontWeight: 900, fontStyle: 'italic', color: '#dc2626' }}>movements.</span>
             </p>
         </div>
-
+<h1 class="newses">WORKSHOPS</h1>
         <div ref={diagonal1Ref} className="card-wrapper c1">
           <img 
             src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800" 
@@ -492,7 +496,9 @@ const Athera = () => {
             <p className="card-title">HARDWARE HACKING</p>
           </div>
         </div>
+
       </section>
+
 
       {/* --- SECTION 3: IMMERSIVE WORLD --- */}
       <div id="immersive-wrapper" ref={wrapperRef}>
@@ -534,32 +540,123 @@ const Athera = () => {
         </div>
       </div>
 
-      {/* --- FOOTER --- */}
-      <footer className="footer-container">
-        <div className="footer-content">
-          <div className="footer-top">
-            <div style={{ maxWidth: '300px' }}>
-              <p style={{ color: '#dc2626', fontWeight: 'bold', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '1rem' }}>Connect with us</p>
-              <p style={{ color: '#71717a', fontSize: '0.875rem', lineHeight: 1.6 }}>Pushing the boundaries of digital interaction through art and technology.</p>
-            </div>
-            <div className="footer-links" style={{ marginTop: '2rem' }}>
-              <h4 style={{ color: 'white', fontWeight: 'bold', fontSize: '0.65rem', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.1em' }}>Platform</h4>
-              <ul>
-                <li><a href="#">Membership</a></li>
-                <li><a href="#">Resources</a></li>
-                <li><a href="#">FAQ</a></li>
-              </ul>
-            </div>
-          </div>
+{/* --- FOOTER --- */}
+<footer className="footer-container">
+  <div className="footer-content">
 
-          <div className="footer-reveal-text">ATHERA</div>
+    {/* TOP SECTION */}
+    <div className="footer-top">
 
-          <div style={{ marginTop: '5rem', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #18181b', paddingTop: '2rem', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.3em', color: '#3f3f46' }}>
-            <p>©2025 ALL RIGHTS RESERVED</p>
-            <p>DESIGNED BY THE GRID</p>
-          </div>
-        </div>
-      </footer>
+      {/* LEFT — BRAND */}
+      <div style={{ maxWidth: '340px' }}>
+        <p
+          style={{
+            color: '#dc2626',
+            fontWeight: 'bold',
+            fontSize: '0.75rem',
+            textTransform: 'uppercase',
+            marginBottom: '0.75rem'
+          }}
+        >
+          ATHERA
+        </p>
+
+        <p style={{ color: '#71717a', fontSize: '0.85rem', lineHeight: 1.6 }}>
+          AI & Technology Hub for Enhanced Research and Analytics
+        </p>
+
+        <p style={{ color: '#52525b', fontSize: '0.75rem', marginTop: '1rem' }}>
+          Department of Computer Science and Engineering (AI & ML) <br />
+          Chennai Institute of Technology
+        </p>
+      </div>
+
+      {/* ABOUT */}
+      <div className="footer-links">
+        <h4>About ATHERA</h4>
+        <ul>
+          <li><a href="#">About the Club</a></li>
+          <li><a href="#">Vision & Mission</a></li>
+          <li><a href="#">Faculty Advisors</a></li>
+          <li><a href="#">Core Team</a></li>
+          <li><a href="#">Student Members</a></li>
+        </ul>
+      </div>
+
+      {/* DOMAINS */}
+      <div className="footer-links">
+        <h4>Domains</h4>
+        <ul>
+          <li><a href="#">Agentic AI Systems</a></li>
+          <li><a href="#">Machine Learning</a></li>
+          <li><a href="#">Large Language Models</a></li>
+          <li><a href="#">Intelligent Automation</a></li>
+          <li><a href="#">Computer Vision</a></li>
+          <li><a href="#">Research & Analytics</a></li>
+        </ul>
+      </div>
+
+      {/* ACTIVITIES */}
+      <div className="footer-links">
+        <h4>Activities</h4>
+        <ul>
+          <li><a href="#">Workshops & Training</a></li>
+          <li><a href="#">Hands-on Projects</a></li>
+          <li><a href="#">Research Implementation</a></li>
+          <li><a href="#">Hackathons</a></li>
+          <li><a href="#">Open-Source</a></li>
+          <li><a href="#">Guest Lectures</a></li>
+        </ul>
+      </div>
+
+      {/* RESOURCES */}
+      <div className="footer-links">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#">Learning Materials</a></li>
+          <li><a href="#">Project Showcase</a></li>
+          <li><a href="#">Research Publications</a></li>
+          <li><a href="#">Event Gallery</a></li>
+          <li><a href="#">Announcements</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    {/* LARGE REVEAL TEXT */}
+    <div className="footer-reveal-text">ATHERA</div>
+
+    {/* BOTTOM BAR */}
+    <div
+      style={{
+        marginTop: '4rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        borderTop: '1px solid #18181b',
+        paddingTop: '2rem',
+        fontSize: '9px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.3em',
+        color: '#3f3f46',
+        gap: '1rem'
+      }}
+    >
+      <h3>© 2025 ATHERA CLUB — ALL RIGHTS RESERVED</h3>
+
+      <h3>
+        Faculty Advisor: Dr. P. Karthikeyan · CSE (AIML)
+      </h3>
+
+      <p>
+        <a href="#" style={{ marginRight: '1rem' }}>LinkedIn</a>
+        <a href="#" style={{ marginRight: '1rem' }}>Instagram</a>
+        <a href="#">GitHub</a>
+      </p>
+    </div>
+
+  </div>
+</footer>
 
     </div>
   );
