@@ -503,7 +503,203 @@ const Athera = () => {
            position: relative;
            z-index: 20;
         }
+.hackathon-btn-wrapper {
+  margin-top: 2.5rem;
+  z-index: 20;
+  position: relative;
+}
 
+/* Base Button */
+.glitch-btn {
+  position: relative;
+  display: inline-block;
+  padding: 16px 48px;
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #fff;
+  border: 1px solid #dc2626;
+  text-decoration: none;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* Text layers */
+.glitch-btn::before,
+.glitch-btn::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Red glitch */
+.glitch-btn::before {
+  color: #dc2626;
+  transform: translateX(-2px);
+}
+
+/* Cyan glitch */
+.glitch-btn::after {
+  color: #00ffff;
+  transform: translateX(2px);
+}
+
+/* Hover / Touch Trigger */
+.glitch-btn:hover::before,
+.glitch-btn:hover::after,
+.glitch-btn:active::before,
+.glitch-btn:active::after {
+  opacity: 1;
+  animation: glitch 0.35s steps(2, end) infinite;
+}
+
+/* Scanline Effect */
+.glitch-btn:hover {
+  box-shadow:
+    0 0 15px rgba(220, 38, 38, 0.6),
+    inset 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+/* Glitch animation */
+@keyframes glitch {
+  0% { clip-path: inset(10% 0 85% 0); }
+  20% { clip-path: inset(40% 0 45% 0); }
+  40% { clip-path: inset(80% 0 5% 0); }
+  60% { clip-path: inset(20% 0 65% 0); }
+  80% { clip-path: inset(50% 0 30% 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+  /* NAV ACTIONS WRAPPER */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+/* HACKATHON BUTTON — SAME SIZE AS REGISTER */
+.hackathon-nav-btn {
+  position: relative;
+  padding: 0.5rem 1.5rem; /* SAME as .reg-btn */
+  font-size: 0.65rem;
+  font-weight: bold;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #fff;
+  border: 1px solid #dc2626;
+  background: transparent;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+/* GLITCH LAYERS */
+.hackathon-nav-btn::before,
+.hackathon-nav-btn::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hackathon-nav-btn::before {
+  color: #dc2626;
+  transform: translateX(-2px);
+}
+
+.hackathon-nav-btn::after {
+  color: #00ffff;
+  transform: translateX(2px);
+}
+
+/* HOVER / TAP GLITCH */
+.hackathon-nav-btn:hover::before,
+.hackathon-nav-btn:hover::after,
+.hackathon-nav-btn:active::before,
+.hackathon-nav-btn:active::after {
+  opacity: 1;
+  animation: nav-glitch 0.35s steps(2, end) infinite;
+}
+
+/* SUBTLE NEON ON HOVER */
+.hackathon-nav-btn:hover {
+  box-shadow:
+    0 0 10px rgba(220, 38, 38, 0.5),
+    inset 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+/* GLITCH KEYFRAMES */
+@keyframes nav-glitch {
+  0%   { clip-path: inset(15% 0 80% 0); }
+  25%  { clip-path: inset(45% 0 40% 0); }
+  50%  { clip-path: inset(70% 0 15% 0); }
+  75%  { clip-path: inset(30% 0 55% 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+  /* NAV BAR BASE */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 2.4rem 3rem; /* ⬅️ increased from 1.5rem */
+  z-index: 100;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+}
+
+/* LEFT */
+.nav-left {
+  position: absolute;
+  left: 3rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* CENTER LINKS */
+.nav-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 3rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-weight: bold;
+}
+
+.nav-center a {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.nav-center a:hover {
+  color: #dc2626;
+}
+
+/* RIGHT */
+.nav-right {
+  position: absolute;
+  right: 3rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
         /* FOOTER */
         footer { background: #000; padding-top: 10rem; padding-bottom: 2.5rem; position: relative; border-top: 1px solid #18181b; }
         .footer-content { max-width: 1200px; margin: 0 auto; padding: 0 2.5rem; }
@@ -518,24 +714,32 @@ const Athera = () => {
       {/* --- SECTION 1: HERO --- */}
       <section className="hero-section" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         
-        <nav className="nav-bar">
-          <div className="logo-circle" onClick={() => window.location.reload()}>
-            <img src={logoImg} alt="Athera Logo" className="logo-img" />
-          </div>
+         <nav className="nav-bar">
 
-          <div className="nav-links">
-            <a href="#">Events</a>
-            <a href="#">About Us</a>
-            <a href="#">Contact</a>
-            <a onClick={handleAddToCart}>Add to cart</a>
-          </div>
-          
-          <div style={{ display:'flex', alignItems:'center' }}>
-            {/* ADDED HACKATHON BUTTON HERE */}
-            <button className="hack-btn" onClick={handleHackathonClick}>Hackathon</button>
-            <button className="reg-btn">Register</button>
-          </div>
-        </nav>
+  {/* LEFT — LOGO */}
+  <div className="nav-left">
+    <div className="logo-circle" onClick={() => window.location.reload()}>
+      <img src={logoImg} alt="Athera Logo" className="logo-img" />
+    </div>
+  </div>
+
+  {/* CENTER — LINKS */}
+  <div className="nav-center">
+    <a href="#">Events</a>
+    <a href="#">About Us</a>
+    <a href="#">Contact</a>
+    <a onClick={handleAddToCart}>Add to Cart</a>
+  </div>
+
+  {/* RIGHT — ACTION BUTTONS */}
+  <div className="nav-right">
+    <a href="https://athera-hackathon.vercel.app/" className="hackathon-nav-btn" data-text="HACKATHON">
+      HACKATHON
+    </a>
+    <button className="reg-btn">Register</button>
+  </div>
+
+</nav>
 
         <h1 className="hero-title">ATHERA</h1>
         <p className="hero-sub">The Digital Renaissance</p>
