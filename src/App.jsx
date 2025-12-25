@@ -20,14 +20,13 @@ const Athera = () => {
   
   const part1Ref = useRef(null);
   const part2Ref = useRef(null);
-  const part3Ref = useRef(null);
   
   const content1Ref = useRef(null);
   const content2Ref = useRef(null);
-  const content3Ref = useRef(null);
   
   const diagonal1Ref = useRef(null);
   const diagonal2Ref = useRef(null);
+  const diagonal3Ref = useRef(null); 
   const scrollingTextRef = useRef(null);
 
   // --- Refs for Smoothing Physics ---
@@ -45,6 +44,11 @@ const Athera = () => {
   const handleAddToCart = (e) => {
     e.preventDefault();
     window.location.href = "/shop"; 
+  };
+
+  const handleHackathonClick = () => {
+    // UPDATED LINK
+    window.location.href = "https://athera-hackathon.vercel.app/";
   };
 
   // --- SMOOTH SCROLL SETUP (LENIS) ---
@@ -105,8 +109,9 @@ const Athera = () => {
         scrollTrigger: {
           trigger: ".hero-section", 
           start: "top top",
-          end: "bottom top",
+          end: "+=1200", 
           scrub: true,
+          pin: true, 
         }
       });
 
@@ -130,7 +135,7 @@ const Athera = () => {
         gsap.to(diagonal2Ref.current, {
           scrollTrigger: {
             trigger: "#motion-section",
-            start: "top 60%", 
+            start: "top 75%", 
             end: "bottom top",
             scrub: 1,
           },
@@ -141,25 +146,43 @@ const Athera = () => {
         });
       }
 
+      // --- Animation for Card 3 ---
+      if (diagonal3Ref.current) {
+        gsap.to(diagonal3Ref.current, {
+          scrollTrigger: {
+            trigger: "#motion-section",
+            start: "top 50%", 
+            end: "bottom -20%", 
+            scrub: 2.2, 
+          },
+          x: window.innerWidth * 0.4, 
+          y: -window.innerHeight * 1.8, 
+          rotation: 30, 
+          scale: 1.1
+        });
+      }
+
       // 2. Immersive World Logic
       const renderWorld = (p) => {
         const scrollDistance = 150; 
         let wx = 0, wy = 0; 
-        let c1y = 0, c2y = 0, c3y = 0; 
-        let op1 = 0, op2 = 0, op3 = 0;
+        let c1y = 0, c2y = 0; 
+        let op1 = 0, op2 = 0; 
+        let scale1 = 1; // Scale variable for smoother entry
+
         let textTransX = 100; 
         let textOpacity = 0; 
 
-        if (p > 0.20 && p < 0.80) {
-            const textProgress = (p - 0.20) / 0.60; 
-            textTransX = 120 - (textProgress * 500); 
-            textOpacity = 1;
+        // --- Text Logic ---
+        if (p > 0.20) {
+            const textProgress = (p - 0.20) / 0.80; 
+            textTransX = 120 - (textProgress * 300); 
+            textOpacity = p < 0.95 ? 1 : 1 - ((p - 0.95) * 20); 
         } else {
             textOpacity = 0;
         }
         
         if (scrollingTextRef.current) {
-          // --- Smooth Physics Logic ---
           const targetVelocity = scrollSpeedRef.current;
           
           const skewStrength = 0.25; 
@@ -182,62 +205,64 @@ const Athera = () => {
           });
         }
 
-        // Coordinate Logic
-        if (p <= 0.15) {
-            const localP = p / 0.15;
+        // --- UPDATED COORDINATE LOGIC FOR SMOOTHER ENTRY ---
+        
+        // Phase 1: Entry (0% - 15%)
+        // Fades in, slides up from bottom, and scales up slightly
+        if (p < 0.15) {
+            const entryP = p / 0.15; // Normalize 0 to 1 within this phase
             wx = 0; wy = 0;
-            c1y = localP * -scrollDistance;
-            op1 = 1; op2 = 0; op3 = 0;
-        } else if (p > 0.15 && p <= 0.30) {
-            const localP = (p - 0.15) / 0.15;
-            c1y = -scrollDistance;
+            
+            c1y = 100 * (1 - entryP); // Slide up from 100px
+            op1 = entryP; // Fade in
+            scale1 = 0.95 + (0.05 * entryP); // Scale 0.95 -> 1.0
+            
+            op2 = 0;
+        }
+        // Phase 2: Hold (15% - 35%)
+        // Static phase to allow reading
+        else if (p >= 0.15 && p < 0.35) {
+            wx = 0; wy = 0;
+            c1y = 0;
+            op1 = 1;
+            scale1 = 1;
+            op2 = 0;
+        } 
+        // Phase 3: Transition (35% - 100%)
+        // Standard exit logic
+        else {
+            const localP = (p - 0.35) / 0.65; // Normalize remaining scroll
+            
             wx = localP * -100;
             wy = localP * -100;
-            op1 = 1 - localP;
-            op2 = localP;
-            op3 = 0;
-        } else if (p > 0.30 && p <= 0.70) {
-            const localP = (p - 0.30) / 0.40;
-            wx = -100; wy = -100;
-            c2y = localP * -scrollDistance; 
-            c1y = -scrollDistance;
-            op1 = 0; op2 = 1; op3 = 0;
-        } else if (p > 0.70 && p <= 0.85) {
-            const localP = (p - 0.70) / 0.15;
-            wx = -100 + (localP * -100); 
-            wy = -100 + (localP * 100);
-            c1y = -scrollDistance;
-            c2y = -scrollDistance;
-            op1 = 0;
-            op2 = 1 - localP;
-            op3 = localP;
-        } else {
-            const localP = (p - 0.85) / 0.15;
-            wx = -200; wy = 0;
-            c3y = localP * -scrollDistance;
-            c1y = -scrollDistance;
-            c2y = -scrollDistance;
-            op1 = 0; op2 = 0; op3 = 1;
+            
+            c1y = -50 - (localP * scrollDistance);
+            c2y = (1 - localP) * scrollDistance; 
+            
+            op1 = 1 - localP * 1.5; 
+            op2 = localP * 1.5; 
+            scale1 = 1 - (localP * 0.1); // Slight scale down on exit
         }
 
         if (worldRef.current) worldRef.current.style.transform = `translate3d(${wx}vw, ${wy}vh, 0)`;
         if (content1Ref.current) content1Ref.current.style.transform = `translate3d(0, ${c1y}px, 0)`;
         if (content2Ref.current) content2Ref.current.style.transform = `translate3d(0, ${c2y}px, 0)`;
-        if (content3Ref.current) content3Ref.current.style.transform = `translate3d(0, ${c3y}px, 0)`;
 
-        if (part1Ref.current) part1Ref.current.style.opacity = op1;
-        if (part2Ref.current) part2Ref.current.style.opacity = op2;
-        if (part3Ref.current) part3Ref.current.style.opacity = op3;
+        if (part1Ref.current) {
+            part1Ref.current.style.opacity = Math.max(0, Math.min(1, op1));
+            // Apply scale logic here
+            part1Ref.current.style.transform = `scale(${scale1})`;
+        }
+        if (part2Ref.current) part2Ref.current.style.opacity = Math.max(0, Math.min(1, op2));
 
         if (part1Ref.current) part1Ref.current.classList.toggle('active', op1 > 0.5);
         if (part2Ref.current) part2Ref.current.classList.toggle('active', op2 > 0.5);
-        if (part3Ref.current) part3Ref.current.classList.toggle('active', op3 > 0.5);
       };
 
       ScrollTrigger.create({
         trigger: wrapperRef.current,
         start: "top top",
-        end: "+=4000",
+        end: "+=3000", 
         pin: true,
         scrub: 0.1, 
         onUpdate: (self) => renderWorld(self.progress)
@@ -247,10 +272,6 @@ const Athera = () => {
 
     return () => ctx.revert();
   }, []);
-
-  const handleRestart = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   const textQuote = "Designing autonomous intelligence for the future";
 
@@ -295,7 +316,7 @@ const Athera = () => {
           width: 100%; height: 100vh;
           display: flex; z-index: 5; pointer-events: none;
         }
-        .t-block { flex: 1; height: 100%;background: #000; transform: translateY(0); }
+        .t-block { flex: 1; height: 100%; background: #000; transform: translateY(0); }
 
         /* NAV BAR */
         .nav-bar {
@@ -311,7 +332,7 @@ const Athera = () => {
           border-radius: 50%; overflow: hidden; 
           border: 2px solid #dc2626; 
           display: flex; align-items: center; justify-content: center; 
-          background: transparent; /* UPDATED: Removed black background */
+          background: transparent;
           cursor: pointer; 
           transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
@@ -325,12 +346,40 @@ const Athera = () => {
         .nav-links a { color: white; text-decoration: none; transition: color 0.3s; cursor: pointer; }
         .nav-links a:hover { color: #dc2626; }
         
+        /* REGULAR BUTTON */
         .reg-btn { 
             border: 1px solid #dc2626; padding: 0.5rem 1.5rem; 
             font-size: 0.65rem; font-weight: bold; text-transform: uppercase; 
             background: transparent; color: white; cursor: pointer; transition: background 0.3s;
         }
         .reg-btn:hover { background: #dc2626; }
+
+        /* HACKATHON BUTTON (NEW) */
+        .hack-btn {
+            background: #dc2626;
+            color: white;
+            border: 1px solid #dc2626;
+            padding: 0.5rem 1.5rem;
+            font-size: 0.65rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 15px;
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+            animation: pulse-red 2s infinite;
+        }
+        .hack-btn:hover {
+            background: transparent;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.8);
+            transform: translateY(-2px);
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
 
         /* HERO TYPOGRAPHY */
         .hero-title { 
@@ -347,7 +396,8 @@ const Athera = () => {
                 linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
             background-size: 60px 60px;
             mask-image: radial-gradient(circle, black 40%, transparent 95%);
-            position: relative; min-height: 130vh; 
+            position: relative; 
+            min-height: 350vh; 
             padding-top: 0;
             padding-bottom: 10rem;
         }
@@ -362,6 +412,8 @@ const Athera = () => {
         .card-wrapper { position: absolute; z-index: 10; width: 350px; }
         .card-wrapper.c1 { bottom: 0; right: -10%; width: 400px; }
         .card-wrapper.c2 { bottom: -10vh; left: -10%; }
+        
+        .card-wrapper.c3 { top: 55%; left: 10%; width: 220px; z-index: 8; }
 
         .interactive-card {
             width: 100%; border-radius: 4px; filter: grayscale(100%);
@@ -380,15 +432,14 @@ const Athera = () => {
             position: relative; width: 100vw; height: 100vh; overflow: hidden; 
             background: transparent;
         }
-        .world-container { position: absolute; width: 300vw; height: 200vh; will-change: transform; top: 0; left: 0; }
+        .world-container { position: absolute; width: 200vw; height: 200vh; will-change: transform; top: 0; left: 0; }
         .imm-section { width: 100vw; height: 100vh; position: absolute; overflow: hidden; opacity: 0; display: flex; justify-content: center; align-items: center; }
         
-        #part1 { top: 0; left: 0; }
+        #part1 { top: 0; left: 0; transform-origin: center; }
         #part2 { top: 100vh; left: 100vw; }
-        #part3 { top: 0; left: 200vw; }
         
         .inner-content { display: flex; flex-direction: column; align-items: center; z-index: 10; padding: 20px; width: 100%; }
-        .inner-content > *:not(.horizontal-quote) { opacity: 0; transform: translateX(100px); transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1); }
+        .inner-content > * { opacity: 0; transform: translateX(100px); transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1); }
         .imm-section.active .inner-content > * { opacity: 1; transform: translateX(0); }
         .imm-section.active .inner-content > *:nth-child(1) { transition-delay: 0.1s; } 
         .imm-section.active .inner-content > *:nth-child(2) { transition-delay: 0.2s; } 
@@ -398,18 +449,59 @@ const Athera = () => {
         .imm-h1 { font-size: 3rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
         .imm-tag { background: #ff0000; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.75rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
         
+        /* NEW SPLIT LAYOUT CSS FOR PART 1 */
+        .split-layout {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 4rem;
+            width: 80%;
+            max-width: 1200px;
+        }
+        .split-image-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .split-image {
+            width: 100%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .split-text-wrapper {
+            flex: 1;
+            text-align: left;
+        }
+        @media (max-width: 768px) {
+            .split-layout { flex-direction: column; gap: 2rem; }
+            .split-image-wrapper { justify-content: center; }
+            .split-text-wrapper { text-align: center; }
+        }
+
         .horizontal-quote { 
             font-size: 8vw; white-space: pre; text-transform: uppercase; font-weight: 900; 
             color: #fff; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 30px 60px rgba(0,0,0,0.9);
             padding: 2vw 4vw 2vw 40px; border-left: 30px solid #ff0000;
-            position: absolute; top: 150vh; left: 0; z-index: 20; 
+            position: absolute; 
+            top: 60%; 
+            left: 0; 
+            z-index: 50; 
             opacity: 0; display: flex; text-shadow: 0 4px 30px rgba(0,0,0,0.9); 
             will-change: transform; 
+            pointer-events: none;
         }
-        .newses{
-        padding-left: 50px;
-        font-size: 7rem;
+
+        .newses {
+           padding-left: 50px;
+           padding-top: 15vh; 
+           font-size: 7rem;
+           font-weight: 900;
+           position: relative;
+           z-index: 20;
         }
 
         /* FOOTER */
@@ -427,7 +519,6 @@ const Athera = () => {
       <section className="hero-section" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         
         <nav className="nav-bar">
-          {/* --- REPLACED: Text Logo with Circular Image Logo --- */}
           <div className="logo-circle" onClick={() => window.location.reload()}>
             <img src={logoImg} alt="Athera Logo" className="logo-img" />
           </div>
@@ -436,11 +527,12 @@ const Athera = () => {
             <a href="#">Events</a>
             <a href="#">About Us</a>
             <a href="#">Contact</a>
-            {/* ADDED: Add to Cart Link */}
             <a onClick={handleAddToCart}>Add to cart</a>
           </div>
           
           <div style={{ display:'flex', alignItems:'center' }}>
+            {/* ADDED HACKATHON BUTTON HERE */}
+            <button className="hack-btn" onClick={handleHackathonClick}>Hackathon</button>
             <button className="reg-btn">Register</button>
           </div>
         </nav>
@@ -452,27 +544,48 @@ const Athera = () => {
           <p style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '1rem' }}>Scroll to explore</p>
           <div style={{ width: '1px', height: '4rem', background: 'linear-gradient(to bottom, #dc2626, transparent)' }}></div>
         </div>
-      </section>
 
-      {/* --- TRANSITION LAYER (WHITE BLOCKS) --- */}
-      <div className="transition-blocks-layer" ref={blocksRef}>
-        <div className="t-block"></div>
-        <div className="t-block"></div>
-        <div className="t-block"></div>
-        <div className="t-block"></div>
-        <div className="t-block"></div>
-      </div>
+        {/* --- TRANSITION LAYER --- */}
+        <div className="transition-blocks-layer" ref={blocksRef}>
+          <div className="t-block"></div>
+          <div className="t-block"></div>
+          <div className="t-block"></div>
+          <div className="t-block"></div>
+          <div className="t-block"></div>
+        </div>
+
+      </section>
 
       {/* --- SECTION 2: MOTION --- */}
       <section id="motion-section" className="technical-grid">
         
         <div className="sticky-text">
-            <span className="vision-tag">// ABOUT THE VISION</span>
+            {/* --- ADDED CONTENT START --- */}
+            <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ width: '8px', height: '8px', background: '#dc2626', borderRadius: '50%', display: 'inline-block' }}></span>
+                <span style={{ fontSize: '0.7rem', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Mission Protocol</span>
+            </div>
+            {/* --- ADDED CONTENT END --- */}
+
             <p className="vision-main">
                 We don't just host events. We engineer <span style={{ fontWeight: 900, fontStyle: 'italic', color: '#dc2626' }}>movements.</span>
             </p>
+
+            {/* --- ADDED CONTENT START --- */}
+            <p style={{ marginTop: '2rem', fontSize: '1rem', color: '#a1a1aa', lineHeight: '1.6', maxWidth: '90%' }}>
+                Athera is the convergence point for minds that refuse to settle for the present. We are building the infrastructure for tomorrow's autonomous systems today.
+            </p>
+
+            <div style={{ marginTop: '2.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <button className="reg-btn" style={{ padding: '0.75rem 2rem', fontSize: '0.75rem' }}>
+                    Explore Our Vision
+                </button>
+            </div>
+             {/* --- ADDED CONTENT END --- */}
         </div>
-<h1 class="newses">WORKSHOPS</h1>
+
+        <h1 className="newses">WORKSHOPS</h1>
+
         <div ref={diagonal1Ref} className="card-wrapper c1">
           <img 
             src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800" 
@@ -486,177 +599,154 @@ const Athera = () => {
         </div>
 
         <div ref={diagonal2Ref} className="card-wrapper c2">
+          {/* IMAGE REMOVED */}
+          <div className="card-meta right">
+            <p className="card-label"></p>
+            <p className="card-title"></p>
+          </div>
+        </div>
+
+        {/* --- NEW 3RD CARD --- */}
+        <div ref={diagonal3Ref} className="card-wrapper c3">
           <img 
-            src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=800" 
-            alt="Hardware Hacking" 
+            src="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=800" 
+            alt="AI Agents" 
             className="interactive-card"
           />
-          <div className="card-meta right">
-            <p className="card-label">Workshop 02</p>
-            <p className="card-title">HARDWARE HACKING</p>
+          <div className="card-meta">
+            <p className="card-label">Workshop 03</p>
+            <p className="card-title">AGENTIC SYSTEMS</p>
           </div>
         </div>
 
       </section>
 
-
       {/* --- SECTION 3: IMMERSIVE WORLD --- */}
       <div id="immersive-wrapper" ref={wrapperRef}>
         <div className="world-container" id="world" ref={worldRef}>
           
+          {/* PART 1: AGENTIC AI SPLIT (UPDATED) */}
           <div className="imm-section" id="part1" ref={part1Ref}>
-            <div className="inner-content" id="content1" ref={content1Ref}>
-              <span className="imm-tag">01 / The Void</span>
-              <h1 className="imm-h1">Dark Matter</h1>
-              <div className="imm-card">
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '0 0 10px 0' }}>Compact Space</h2>
-                <p style={{ color: '#ccc', lineHeight: 1.6 }}>We have integrated the coordinate system. The scroll track is now pinned to this section.</p>
+            <div className="inner-content split-layout" id="content1" ref={content1Ref}>
+              
+              {/* LEFT: IMAGE */}
+              <div className="split-image-wrapper">
+                <img 
+                    src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800" 
+                    alt="Agentic AI Visualization" 
+                    className="split-image" 
+                />
               </div>
+
+              {/* RIGHT: TEXT */}
+              <div className="split-text-wrapper">
+                <span className="imm-tag">01 / Intelligence</span>
+                <h1 className="imm-h1">Agentic AI</h1>
+                <p style={{ color: '#ccc', lineHeight: 1.6, fontSize: '1.1rem' }}>
+                    
+                    Beyond simple automation. AI agents that perceive, reason, and act to achieve complex goals without constant human intervention.
+                </p>
+                <div style={{ marginTop: '20px', borderLeft: '2px solid #dc2626', paddingLeft: '15px' }}>
+                    <p style={{ fontSize: '0.9rem', color: '#71717a' }}>AUTONOMY · REASONING · ACTION</p>
+                </div>
+              </div>
+
             </div>
           </div>
 
+          {/* PART 2 */}
           <div className="imm-section" id="part2" ref={part2Ref}>
-            <div className="inner-content" id="content2" ref={content2Ref}></div>
-          </div>
-
-          <div className="horizontal-quote" id="scrollingText" ref={scrollingTextRef}>
-            {textQuote}
-          </div>
-
-          <div className="imm-section" id="part3" ref={part3Ref}>
-            <div className="inner-content" id="content3" ref={content3Ref}>
-              <span className="imm-tag">03 / Finality</span>
-              <h1 className="imm-h1">The Core</h1>
-              <div className="imm-card">
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: '0 0 10px 0' }}>Arrival</h2>
-                <p style={{ color: '#ccc', lineHeight: 1.6 }}>We have moved Northeast to the final coordinate. The animation resets when you leave the area.</p>
-                <button onClick={handleRestart} style={{ padding: '15px 30px', cursor:'pointer', background:'#ff0000', border:'none', borderRadius:'30px', fontWeight:'bold', color:'#fff', marginTop:'20px', fontSize: '1rem', boxShadow: '0 5px 20px rgba(255,0,0,0.4)' }}>
-                  Restart Journey ↺
-                </button>
-              </div>
+            <div className="inner-content" id="content2" ref={content2Ref}>
+                {/* Content for part 2 */}
             </div>
           </div>
 
         </div>
+        
+        <div className="horizontal-quote" id="scrollingText" ref={scrollingTextRef}>
+            {textQuote}
+        </div>
       </div>
 
-{/* --- FOOTER --- */}
-<footer className="footer-container">
-  <div className="footer-content">
+      {/* --- FOOTER --- */}
+      <footer className="footer-container">
+        <div className="footer-content">
+          <div className="footer-top">
+            
+            {/* BRAND */}
+            <div style={{ maxWidth: '340px' }}>
+              <p style={{ color: '#dc2626', fontWeight: 'bold', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.75rem' }}>ATHERA</p>
+              <p style={{ color: '#71717a', fontSize: '0.85rem', lineHeight: 1.6 }}>AI & Technology Hub for Enhanced Research and Analytics</p>
+              <p style={{ color: '#52525b', fontSize: '0.75rem', marginTop: '1rem' }}>Department of Computer Science and Engineering (AI & ML) <br /> Chennai Institute of Technology</p>
+            </div>
 
-    {/* TOP SECTION */}
-    <div className="footer-top">
+            {/* ABOUT */}
+            <div className="footer-links">
+              <h4>About ATHERA</h4>
+              <ul>
+                <li><a href="#">About the Club</a></li>
+                <li><a href="#">Vision & Mission</a></li>
+                <li><a href="#">Faculty Advisors</a></li>
+                <li><a href="#">Core Team</a></li>
+                <li><a href="#">Student Members</a></li>
+              </ul>
+            </div>
 
-      {/* LEFT — BRAND */}
-      <div style={{ maxWidth: '340px' }}>
-        <p
-          style={{
-            color: '#dc2626',
-            fontWeight: 'bold',
-            fontSize: '0.75rem',
-            textTransform: 'uppercase',
-            marginBottom: '0.75rem'
-          }}
-        >
-          ATHERA
-        </p>
+            {/* DOMAINS */}
+            <div className="footer-links">
+              <h4>Domains</h4>
+              <ul>
+                <li><a href="#">Agentic AI Systems</a></li>
+                <li><a href="#">Machine Learning</a></li>
+                <li><a href="#">Large Language Models</a></li>
+                <li><a href="#">Intelligent Automation</a></li>
+                <li><a href="#">Computer Vision</a></li>
+                <li><a href="#">Research & Analytics</a></li>
+              </ul>
+            </div>
 
-        <p style={{ color: '#71717a', fontSize: '0.85rem', lineHeight: 1.6 }}>
-          AI & Technology Hub for Enhanced Research and Analytics
-        </p>
+            {/* ACTIVITIES */}
+            <div className="footer-links">
+              <h4>Activities</h4>
+              <ul>
+                <li><a href="#">Workshops & Training</a></li>
+                <li><a href="#">Hands-on Projects</a></li>
+                <li><a href="#">Research Implementation</a></li>
+                <li><a href="#">Hackathons</a></li>
+                <li><a href="#">Open-Source</a></li>
+                <li><a href="#">Guest Lectures</a></li>
+              </ul>
+            </div>
 
-        <p style={{ color: '#52525b', fontSize: '0.75rem', marginTop: '1rem' }}>
-          Department of Computer Science and Engineering (AI & ML) <br />
-          Chennai Institute of Technology
-        </p>
-      </div>
+            {/* RESOURCES */}
+            <div className="footer-links">
+              <h4>Resources</h4>
+              <ul>
+                <li><a href="#">Learning Materials</a></li>
+                <li><a href="#">Project Showcase</a></li>
+                <li><a href="#">Research Publications</a></li>
+                <li><a href="#">Event Gallery</a></li>
+                <li><a href="#">Announcements</a></li>
+              </ul>
+            </div>
+          </div>
 
-      {/* ABOUT */}
-      <div className="footer-links">
-        <h4>About ATHERA</h4>
-        <ul>
-          <li><a href="#">About the Club</a></li>
-          <li><a href="#">Vision & Mission</a></li>
-          <li><a href="#">Faculty Advisors</a></li>
-          <li><a href="#">Core Team</a></li>
-          <li><a href="#">Student Members</a></li>
-        </ul>
-      </div>
+          {/* LARGE REVEAL TEXT */}
+          <div className="footer-reveal-text">ATHERA</div>
 
-      {/* DOMAINS */}
-      <div className="footer-links">
-        <h4>Domains</h4>
-        <ul>
-          <li><a href="#">Agentic AI Systems</a></li>
-          <li><a href="#">Machine Learning</a></li>
-          <li><a href="#">Large Language Models</a></li>
-          <li><a href="#">Intelligent Automation</a></li>
-          <li><a href="#">Computer Vision</a></li>
-          <li><a href="#">Research & Analytics</a></li>
-        </ul>
-      </div>
+          {/* BOTTOM BAR */}
+          <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', borderTop: '1px solid #18181b', paddingTop: '2rem', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.3em', color: '#3f3f46', gap: '1rem' }}>
+            <h3>© 2025 ATHERA CLUB — ALL RIGHTS RESERVED</h3>
+            <h3>Faculty Advisor: Dr. P. Karthikeyan · CSE (AIML)</h3>
+            <p>
+              <a href="#" style={{ marginRight: '1rem' }}>LinkedIn</a>
+              <a href="#" style={{ marginRight: '1rem' }}>Instagram</a>
+              <a href="#">GitHub</a>
+            </p>
+          </div>
 
-      {/* ACTIVITIES */}
-      <div className="footer-links">
-        <h4>Activities</h4>
-        <ul>
-          <li><a href="#">Workshops & Training</a></li>
-          <li><a href="#">Hands-on Projects</a></li>
-          <li><a href="#">Research Implementation</a></li>
-          <li><a href="#">Hackathons</a></li>
-          <li><a href="#">Open-Source</a></li>
-          <li><a href="#">Guest Lectures</a></li>
-        </ul>
-      </div>
-
-      {/* RESOURCES */}
-      <div className="footer-links">
-        <h4>Resources</h4>
-        <ul>
-          <li><a href="#">Learning Materials</a></li>
-          <li><a href="#">Project Showcase</a></li>
-          <li><a href="#">Research Publications</a></li>
-          <li><a href="#">Event Gallery</a></li>
-          <li><a href="#">Announcements</a></li>
-        </ul>
-      </div>
-
-    </div>
-
-    {/* LARGE REVEAL TEXT */}
-    <div className="footer-reveal-text">ATHERA</div>
-
-    {/* BOTTOM BAR */}
-    <div
-      style={{
-        marginTop: '4rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        borderTop: '1px solid #18181b',
-        paddingTop: '2rem',
-        fontSize: '9px',
-        textTransform: 'uppercase',
-        letterSpacing: '0.3em',
-        color: '#3f3f46',
-        gap: '1rem'
-      }}
-    >
-      <h3>© 2025 ATHERA CLUB — ALL RIGHTS RESERVED</h3>
-
-      <h3>
-        Faculty Advisor: Dr. P. Karthikeyan · CSE (AIML)
-      </h3>
-
-      <p>
-        <a href="#" style={{ marginRight: '1rem' }}>LinkedIn</a>
-        <a href="#" style={{ marginRight: '1rem' }}>Instagram</a>
-        <a href="#">GitHub</a>
-      </p>
-    </div>
-
-  </div>
-</footer>
+        </div>
+      </footer>
 
     </div>
   );
