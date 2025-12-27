@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
-import logoImg from './assets/logo.png';
+import logoImg from './assets/logo.png'; 
 
 // Register GSAP Plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -15,58 +15,53 @@ const Athera = () => {
   const mainRef = useRef(null);
   const wrapperRef = useRef(null);
   const worldRef = useRef(null);
-  const audioRef = useRef(null); 
-  const blocksRef = useRef(null); 
+  const audioRef = useRef(null);
+  const blocksRef = useRef(null);
   
+  // Immersive Section Refs
   const part1Ref = useRef(null);
-  const part2Ref = useRef(null);
-  
   const content1Ref = useRef(null);
+  const part2Ref = useRef(null);
   const content2Ref = useRef(null);
   
+  // Motion Section Refs
   const diagonal1Ref = useRef(null);
   const diagonal2Ref = useRef(null);
-  const diagonal3Ref = useRef(null); 
+  const workshopsTitleRef = useRef(null);
+  
+  // Scrolling Text Refs
   const scrollingTextRef = useRef(null);
-
-  // --- Refs for Smoothing Physics ---
   const scrollSpeedRef = useRef(0);
-  const currentSkewRef = useRef(0); 
-  const currentScaleRef = useRef(1); 
+  const currentSkewRef = useRef(0);
+  const currentScaleRef = useRef(1);
 
   // --- CONFIGURATION ---
-  const SCROLL_DURATION = 1.5; 
-
-  // --- Audio State ---
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  // /* --- CHANGED: Increased duration for a "heavier/slower" feel --- */
+  const SCROLL_DURATION = 2.5; 
 
   // --- Redirect Logic ---
   const handleAddToCart = (e) => {
     e.preventDefault();
-    window.location.href = "/shop"; 
-  };
-
-  const handleHackathonClick = () => {
-    // UPDATED LINK
-    window.location.href = "https://athera-hackathon.vercel.app/";
+    window.location.href = "/shop";
   };
 
   // --- SMOOTH SCROLL SETUP (LENIS) ---
   useEffect(() => {
     const lenis = new Lenis({
-      duration: SCROLL_DURATION, 
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+      duration: SCROLL_DURATION,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
-      mouseMultiplier: 1, 
+      // /* --- CHANGED: Reduced multiplier (0.5 means half speed) --- */
+      mouseMultiplier: 0.5, 
       smoothTouch: false,
-      touchMultiplier: 2,
+      touchMultiplier: 1.5,
     });
 
     lenis.on('scroll', (e) => {
       ScrollTrigger.update();
-      scrollSpeedRef.current = e.velocity; 
+      scrollSpeedRef.current = e.velocity;
     });
 
     gsap.ticker.add((time) => {
@@ -80,17 +75,6 @@ const Athera = () => {
       lenis.destroy();
     };
   }, []);
-
-  const toggleAudio = () => {
-    if (audioRef.current) {
-      if (isAudioPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch(e => console.log("Audio play failed:", e));
-      }
-      setIsAudioPlaying(!isAudioPlaying);
-    }
-  };
 
   useLayoutEffect(() => {
     if ('scrollRestoration' in window.history) {
@@ -107,15 +91,16 @@ const Athera = () => {
         stagger: 0.1,
         ease: "none",
         scrollTrigger: {
-          trigger: ".hero-section", 
+          trigger: ".hero-section",
           start: "top top",
-          end: "+=1200", 
+          // /* --- CHANGED: Increased distance (slower transition) --- */
+          end: "+=2000", 
           scrub: true,
-          pin: true, 
+          pin: true,
         }
       });
 
-      // 1. Diagonal Cards Animation
+      // --- 1. Diagonal Card 1 ---
       if (diagonal1Ref.current) {
         gsap.to(diagonal1Ref.current, {
           scrollTrigger: {
@@ -124,59 +109,59 @@ const Athera = () => {
             end: "bottom top",
             scrub: 1.5,
           },
-          x: -window.innerWidth * 0.8,
+          x: -window.innerWidth * 0.4, 
           y: -window.innerHeight * 1.5,
           rotation: -10,
           scale: 0.8
         });
       }
 
+      // --- 2. Diagonal Card 2 ---
       if (diagonal2Ref.current) {
         gsap.to(diagonal2Ref.current, {
           scrollTrigger: {
             trigger: "#motion-section",
-            start: "top 75%", 
+            start: "top 60%",
             end: "bottom top",
             scrub: 1,
           },
-          x: window.innerWidth * 1.5, 
+          x: window.innerWidth * 0.2, 
           y: -window.innerHeight * 1.8,
-          rotation: 15, 
+          rotation: 10,
           scale: 0.9
         });
       }
 
-      // --- Animation for Card 3 ---
-      if (diagonal3Ref.current) {
-        gsap.to(diagonal3Ref.current, {
+      // --- 3. Workshops Title ---
+      if (workshopsTitleRef.current) {
+        gsap.to(workshopsTitleRef.current, {
+          x: -window.innerWidth * 1.5, 
+          ease: "none",
           scrollTrigger: {
             trigger: "#motion-section",
-            start: "top 50%", 
-            end: "bottom -20%", 
-            scrub: 2.2, 
-          },
-          x: window.innerWidth * 0.4, 
-          y: -window.innerHeight * 1.8, 
-          rotation: 30, 
-          scale: 1.1
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1, 
+          }
         });
       }
 
-      // 2. Immersive World Logic
+      // --- 4. IMMERSIVE WORLD LOGIC ---
       const renderWorld = (p) => {
-        const scrollDistance = 150; 
-        let wx = 0, wy = 0; 
-        let c1y = 0, c2y = 0; 
-        let op1 = 0, op2 = 0; 
-        let scale1 = 1; // Scale variable for smoother entry
+        const scrollDistance = 150;
+        let wx = 0, wy = 0;
+        let c1y = 0, c2y = 0;
+        let op1 = 0, op2 = 0;
+        let scale1 = 1;
 
-        let textTransX = 100; 
-        let textOpacity = 0; 
+        let textTransX = 100;
+        let textOpacity = 0;
 
-        // --- Text Logic ---
+        // --- Text Logic with Physics ---
         if (p > 0.20) {
             const textProgress = (p - 0.20) / 0.80; 
             textTransX = 120 - (textProgress * 300); 
+            // Fade out at the very end
             textOpacity = p < 0.95 ? 1 : 1 - ((p - 0.95) * 20); 
         } else {
             textOpacity = 0;
@@ -185,13 +170,13 @@ const Athera = () => {
         if (scrollingTextRef.current) {
           const targetVelocity = scrollSpeedRef.current;
           
-          const skewStrength = 0.25; 
+          const skewStrength = 0.25;
           let targetSkew = targetVelocity * skewStrength;
-          targetSkew = Math.max(Math.min(targetSkew, 20), -20); 
+          targetSkew = Math.max(Math.min(targetSkew, 20), -20);
 
           const scaleStrength = 0.005;
           let targetScale = 1 + Math.abs(targetVelocity * scaleStrength);
-          targetScale = Math.min(targetScale, 1.5); 
+          targetScale = Math.min(targetScale, 1.5);
 
           currentSkewRef.current = lerp(currentSkewRef.current, targetSkew, 0.1);
           currentScaleRef.current = lerp(currentScaleRef.current, targetScale, 0.1);
@@ -201,47 +186,43 @@ const Athera = () => {
              skewX: currentSkewRef.current,
              scaleX: currentScaleRef.current,
              opacity: textOpacity,
-             force3D: true 
+             force3D: true
           });
         }
 
-        // --- UPDATED COORDINATE LOGIC FOR SMOOTHER ENTRY ---
+        // --- COORDINATE LOGIC (3 PHASES) ---
         
         // Phase 1: Entry (0% - 15%)
-        // Fades in, slides up from bottom, and scales up slightly
         if (p < 0.15) {
-            const entryP = p / 0.15; // Normalize 0 to 1 within this phase
+            const entryP = p / 0.15;
             wx = 0; wy = 0;
             
-            c1y = 100 * (1 - entryP); // Slide up from 100px
-            op1 = entryP; // Fade in
-            scale1 = 0.95 + (0.05 * entryP); // Scale 0.95 -> 1.0
+            c1y = 100 * (1 - entryP); // Slide up effect
+            op1 = entryP; 
+            scale1 = 0.95 + (0.05 * entryP); 
             
             op2 = 0;
         }
         // Phase 2: Hold (15% - 35%)
-        // Static phase to allow reading
         else if (p >= 0.15 && p < 0.35) {
             wx = 0; wy = 0;
             c1y = 0;
             op1 = 1;
             scale1 = 1;
             op2 = 0;
-        } 
+        }
         // Phase 3: Transition (35% - 100%)
-        // Standard exit logic
         else {
-            const localP = (p - 0.35) / 0.65; // Normalize remaining scroll
-            
+            const localP = (p - 0.35) / 0.65;
             wx = localP * -100;
             wy = localP * -100;
             
             c1y = -50 - (localP * scrollDistance);
-            c2y = (1 - localP) * scrollDistance; 
+            c2y = (1 - localP) * scrollDistance;
             
-            op1 = 1 - localP * 1.5; 
-            op2 = localP * 1.5; 
-            scale1 = 1 - (localP * 0.1); // Slight scale down on exit
+            op1 = 1 - localP * 1.5;
+            op2 = localP * 1.5;
+            scale1 = 1 - (localP * 0.1);
         }
 
         if (worldRef.current) worldRef.current.style.transform = `translate3d(${wx}vw, ${wy}vh, 0)`;
@@ -250,21 +231,23 @@ const Athera = () => {
 
         if (part1Ref.current) {
             part1Ref.current.style.opacity = Math.max(0, Math.min(1, op1));
-            // Apply scale logic here
             part1Ref.current.style.transform = `scale(${scale1})`;
+            part1Ref.current.classList.toggle('active', op1 > 0.5);
         }
-        if (part2Ref.current) part2Ref.current.style.opacity = Math.max(0, Math.min(1, op2));
-
-        if (part1Ref.current) part1Ref.current.classList.toggle('active', op1 > 0.5);
-        if (part2Ref.current) part2Ref.current.classList.toggle('active', op2 > 0.5);
+        
+        if (part2Ref.current) {
+            part2Ref.current.style.opacity = Math.max(0, Math.min(1, op2));
+            part2Ref.current.classList.toggle('active', op2 > 0.5);
+        }
       };
 
       ScrollTrigger.create({
         trigger: wrapperRef.current,
         start: "top top",
-        end: "+=3000", 
+        // /* --- CHANGED: Doubled distance. User must scroll twice as much to finish this animation --- */
+        end: "+=6000", 
         pin: true,
-        scrub: 0.1, 
+        scrub: 0.1,
         onUpdate: (self) => renderWorld(self.progress)
       });
 
@@ -291,7 +274,6 @@ const Athera = () => {
         /* RESET & BASICS */
         html.lenis { height: auto; }
         .lenis.lenis-smooth { scroll-behavior: auto; }
-        .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
         .lenis.lenis-stopped { overflow: hidden; }
 
         .athera-container { 
@@ -320,33 +302,41 @@ const Athera = () => {
 
         /* NAV BAR */
         .nav-bar {
-            position: fixed; top: 0; width: 100%; padding: 1.5rem 3rem;
+            position: fixed; top: 0; width: 100%; padding: 2.4rem 3rem;
             display: flex; justify-content: space-between; align-items: center;
             z-index: 100; box-sizing: border-box;
             background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
         }
+        .nav-left { position: absolute; left: 3rem; top: 50%; transform: translateY(-50%); }
+        .nav-center {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            display: flex; gap: 3rem; font-size: 0.65rem; text-transform: uppercase;
+            letter-spacing: 0.3em; font-weight: bold;
+        }
+        .nav-center a { color: white; text-decoration: none; transition: color 0.3s; cursor: pointer; }
+        .nav-center a:hover { color: #dc2626; }
+        .nav-right {
+            position: absolute; right: 3rem; top: 50%; transform: translateY(-50%);
+            display: flex; align-items: center; gap: 1.2rem;
+        }
         
-        /* --- LOGO CSS --- */
+        /* LOGO */
         .logo-circle { 
-          width: 60px; height: 60px; 
-          border-radius: 50%; overflow: hidden; 
-          border: 2px solid #dc2626; 
-          display: flex; align-items: center; justify-content: center; 
-          background: transparent;
-          cursor: pointer; 
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 60px; height: 60px; 
+            border-radius: 50%; overflow: hidden; 
+            border: 2px solid #dc2626; 
+            display: flex; align-items: center; justify-content: center; 
+            background: transparent;
+            cursor: pointer; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .logo-circle:hover {
-          transform: scale(1.1);
-          box-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
         }
         .logo-img { width: 100%; height: 100%; object-fit: cover; }
 
-        .nav-links { display: flex; gap: 3rem; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.3em; font-weight: bold; }
-        .nav-links a { color: white; text-decoration: none; transition: color 0.3s; cursor: pointer; }
-        .nav-links a:hover { color: #dc2626; }
-        
-        /* REGULAR BUTTON */
+        /* BUTTONS */
         .reg-btn { 
             border: 1px solid #dc2626; padding: 0.5rem 1.5rem; 
             font-size: 0.65rem; font-weight: bold; text-transform: uppercase; 
@@ -354,31 +344,26 @@ const Athera = () => {
         }
         .reg-btn:hover { background: #dc2626; }
 
-        /* HACKATHON BUTTON (NEW) */
-        .hack-btn {
-            background: #dc2626;
-            color: white;
-            border: 1px solid #dc2626;
-            padding: 0.5rem 1.5rem;
-            font-size: 0.65rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-right: 15px;
-            box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
-            animation: pulse-red 2s infinite;
+        .hackathon-nav-btn {
+            position: relative; padding: 0.5rem 1.5rem; font-size: 0.65rem;
+            font-weight: bold; letter-spacing: 0.3em; text-transform: uppercase;
+            color: #fff; border: 1px solid #dc2626; background: transparent;
+            text-decoration: none; overflow: hidden; cursor: pointer; border-radius: 10px;
         }
-        .hack-btn:hover {
-            background: transparent;
-            box-shadow: 0 0 20px rgba(220, 38, 38, 0.8);
-            transform: translateY(-2px);
+        .hackathon-nav-btn::before, .hackathon-nav-btn::after {
+            content: attr(data-text); position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
         }
-
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        .hackathon-nav-btn::before { color: #dc2626; transform: translateX(-2px); }
+        .hackathon-nav-btn::after { color: #00ffff; transform: translateX(2px); }
+        .hackathon-nav-btn:hover::before, .hackathon-nav-btn:hover::after {
+            opacity: 1; animation: nav-glitch 0.35s steps(2, end) infinite;
+        }
+        @keyframes nav-glitch {
+            0% { clip-path: inset(15% 0 80% 0); }
+            50% { clip-path: inset(70% 0 15% 0); }
+            100% { clip-path: inset(0 0 0 0); }
         }
 
         /* HERO TYPOGRAPHY */
@@ -397,23 +382,39 @@ const Athera = () => {
             background-size: 60px 60px;
             mask-image: radial-gradient(circle, black 40%, transparent 95%);
             position: relative; 
-            min-height: 350vh; 
+            min-height: 200vh; 
             padding-top: 0;
             padding-bottom: 10rem;
+            overflow: hidden; 
         }
 
         .sticky-text { 
             position: sticky; top: 50%; transform: translateY(-50%); 
-            margin-left: 5rem; max-width: 32rem; z-index: 20; padding: 2.5rem; 
+            margin-left: 5rem; 
+            width: 35%; 
+            z-index: 30;
+            padding: 2.5rem; 
         }
-        .vision-tag { color: #dc2626; font-weight: bold; letter-spacing: 0.5em; font-size: 0.75rem; margin-bottom: 1rem; display: block; }
         .vision-main { font-size: 2.25rem; font-weight: 300; line-height: 1.2; }
         
+        .newses { 
+            position: absolute;
+            top: 20vh;
+            right: 5%;
+            text-align: right;
+            font-size: 7rem; 
+            font-weight: 900; 
+            z-index: 10;
+            line-height: 1;
+            white-space: nowrap;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        /* --- CARD POSITIONING --- */
         .card-wrapper { position: absolute; z-index: 10; width: 350px; }
-        .card-wrapper.c1 { bottom: 0; right: -10%; width: 400px; }
-        .card-wrapper.c2 { bottom: -10vh; left: -10%; }
-        
-        .card-wrapper.c3 { top: 55%; left: 10%; width: 220px; z-index: 8; }
+        .card-wrapper.c1 { bottom: 0; right: 5%; width: 400px; }
+        .card-wrapper.c2 { bottom: -10vh; left: 45%; z-index: 10; width: 350px; }
 
         .interactive-card {
             width: 100%; border-radius: 4px; filter: grayscale(100%);
@@ -421,9 +422,8 @@ const Athera = () => {
             box-shadow: 20px 20px 60px rgba(0,0,0,0.5), -5px -5px 20px rgba(255,0,0,0.1);
         }
         .interactive-card:hover { filter: grayscale(0%); }
-        
         .card-meta { margin-top: 1rem; border-left: 2px solid #dc2626; padding-left: 1rem; }
-        .card-meta.right { text-align: right; }
+        .card-meta.right { text-align: right; border-left: none; border-right: 2px solid #dc2626; padding-right: 1rem; }
         .card-label { font-size: 10px; font-weight: bold; color: #dc2626; text-transform: uppercase; }
         .card-title { font-size: 1.25rem; font-weight: bold; }
 
@@ -439,15 +439,10 @@ const Athera = () => {
         #part2 { top: 100vh; left: 100vw; }
         
         .inner-content { display: flex; flex-direction: column; align-items: center; z-index: 10; padding: 20px; width: 100%; }
-        .inner-content > * { opacity: 0; transform: translateX(100px); transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1); }
+        
+        /* Default Hidden State for Immersive Parts (Standard cards) */
+        .imm-section .inner-content > * { opacity: 0; transform: translateX(100px); transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1); }
         .imm-section.active .inner-content > * { opacity: 1; transform: translateX(0); }
-        .imm-section.active .inner-content > *:nth-child(1) { transition-delay: 0.1s; } 
-        .imm-section.active .inner-content > *:nth-child(2) { transition-delay: 0.2s; } 
-        .imm-section.active .inner-content > *:nth-child(3) { transition-delay: 0.3s; } 
-
-        .imm-card { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid #ff0000; border-radius: 16px; padding: 25px; max-width: 600px; width: 100%; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); text-align: left; margin: 15px 0; }
-        .imm-h1 { font-size: 3rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
-        .imm-tag { background: #ff0000; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.75rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
         
         /* NEW SPLIT LAYOUT CSS FOR PART 1 */
         .split-layout {
@@ -459,247 +454,31 @@ const Athera = () => {
             width: 80%;
             max-width: 1200px;
         }
-        .split-image-wrapper {
-            flex: 1;
-            display: flex;
-            justify-content: flex-end;
-        }
-        .split-image {
-            width: 100%;
-            max-width: 500px;
-            border-radius: 12px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .split-text-wrapper {
-            flex: 1;
-            text-align: left;
-        }
-        @media (max-width: 768px) {
-            .split-layout { flex-direction: column; gap: 2rem; }
-            .split-image-wrapper { justify-content: center; }
-            .split-text-wrapper { text-align: center; }
-        }
+        .split-image-wrapper { flex: 1; display: flex; justify-content: flex-end; }
+        .split-image { width: 100%; max-width: 500px; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+        .split-text-wrapper { flex: 1; text-align: left; }
+        
+        .imm-h1 { font-size: 3rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 900; }
+        .imm-tag { background: #ff0000; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.75rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block; }
 
         .horizontal-quote { 
-            font-size: 8vw; white-space: pre; text-transform: uppercase; font-weight: 900; 
-            color: #fff; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 30px 60px rgba(0,0,0,0.9);
-            padding: 2vw 4vw 2vw 40px; border-left: 30px solid #ff0000;
+            font-size: 8vw; 
+            white-space: pre; 
+            text-transform: uppercase; 
+            font-weight: 900; 
+            color: #fff; 
+            background: transparent; 
             position: absolute; 
             top: 60%; 
             left: 0; 
             z-index: 50; 
-            opacity: 0; display: flex; text-shadow: 0 4px 30px rgba(0,0,0,0.9); 
+            opacity: 0; 
+            display: flex; 
+            text-shadow: 0 4px 30px rgba(0,0,0,0.9); 
             will-change: transform; 
             pointer-events: none;
         }
-
-        .newses {
-           padding-left: 50px;
-           padding-top: 15vh; 
-           font-size: 7rem;
-           font-weight: 900;
-           position: relative;
-           z-index: 20;
-        }
-.hackathon-btn-wrapper {
-  margin-top: 2.5rem;
-  z-index: 20;
-  position: relative;
-}
-
-/* Base Button */
-.glitch-btn {
-  position: relative;
-  display: inline-block;
-  padding: 16px 48px;
-  font-size: 0.75rem;
-  letter-spacing: 0.35em;
-  font-weight: 900;
-  text-transform: uppercase;
-  color: #fff;
-  border: 1px solid #dc2626;
-  text-decoration: none;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  overflow: hidden;
-  cursor: pointer;
-}
-
-/* Text layers */
-.glitch-btn::before,
-.glitch-btn::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Red glitch */
-.glitch-btn::before {
-  color: #dc2626;
-  transform: translateX(-2px);
-}
-
-/* Cyan glitch */
-.glitch-btn::after {
-  color: #00ffff;
-  transform: translateX(2px);
-}
-
-/* Hover / Touch Trigger */
-.glitch-btn:hover::before,
-.glitch-btn:hover::after,
-.glitch-btn:active::before,
-.glitch-btn:active::after {
-  opacity: 1;
-  animation: glitch 0.35s steps(2, end) infinite;
-}
-
-/* Scanline Effect */
-.glitch-btn:hover {
-  box-shadow:
-    0 0 15px rgba(220, 38, 38, 0.6),
-    inset 0 0 15px rgba(0, 255, 255, 0.3);
-}
-
-/* Glitch animation */
-@keyframes glitch {
-  0% { clip-path: inset(10% 0 85% 0); }
-  20% { clip-path: inset(40% 0 45% 0); }
-  40% { clip-path: inset(80% 0 5% 0); }
-  60% { clip-path: inset(20% 0 65% 0); }
-  80% { clip-path: inset(50% 0 30% 0); }
-  100% { clip-path: inset(0 0 0 0); }
-}
-  /* NAV ACTIONS WRAPPER */
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-}
-
-/* HACKATHON BUTTON — SAME SIZE AS REGISTER */
-.hackathon-nav-btn {
-  position: relative;
-  padding: 0.5rem 1.5rem; /* SAME as .reg-btn */
-  font-size: 0.65rem;
-  font-weight: bold;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: #fff;
-  border: 1px solid #dc2626;
-  background: transparent;
-  text-decoration: none;
-  overflow: hidden;
-  cursor: pointer;
-  border-radius: 10px;
-}
-
-/* GLITCH LAYERS */
-.hackathon-nav-btn::before,
-.hackathon-nav-btn::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.hackathon-nav-btn::before {
-  color: #dc2626;
-  transform: translateX(-2px);
-}
-
-.hackathon-nav-btn::after {
-  color: #00ffff;
-  transform: translateX(2px);
-}
-
-/* HOVER / TAP GLITCH */
-.hackathon-nav-btn:hover::before,
-.hackathon-nav-btn:hover::after,
-.hackathon-nav-btn:active::before,
-.hackathon-nav-btn:active::after {
-  opacity: 1;
-  animation: nav-glitch 0.35s steps(2, end) infinite;
-}
-
-/* SUBTLE NEON ON HOVER */
-.hackathon-nav-btn:hover {
-  box-shadow:
-    0 0 10px rgba(220, 38, 38, 0.5),
-    inset 0 0 10px rgba(0, 255, 255, 0.2);
-}
-
-/* GLITCH KEYFRAMES */
-@keyframes nav-glitch {
-  0%   { clip-path: inset(15% 0 80% 0); }
-  25%  { clip-path: inset(45% 0 40% 0); }
-  50%  { clip-path: inset(70% 0 15% 0); }
-  75%  { clip-path: inset(30% 0 55% 0); }
-  100% { clip-path: inset(0 0 0 0); }
-}
-  /* NAV BAR BASE */
-.nav-bar {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  padding: 2.4rem 3rem; /* ⬅️ increased from 1.5rem */
-  z-index: 100;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-}
-
-/* LEFT */
-.nav-left {
-  position: absolute;
-  left: 3rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-/* CENTER LINKS */
-.nav-center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  gap: 3rem;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  font-weight: bold;
-}
-
-.nav-center a {
-  color: white;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.nav-center a:hover {
-  color: #dc2626;
-}
-
-/* RIGHT */
-.nav-right {
-  position: absolute;
-  right: 3rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-}
+        
         /* FOOTER */
         footer { background: #000; padding-top: 10rem; padding-bottom: 2.5rem; position: relative; border-top: 1px solid #18181b; }
         .footer-content { max-width: 1200px; margin: 0 auto; padding: 0 2.5rem; }
@@ -713,33 +492,25 @@ const Athera = () => {
 
       {/* --- SECTION 1: HERO --- */}
       <section className="hero-section" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        
-         <nav className="nav-bar">
-
-  {/* LEFT — LOGO */}
-  <div className="nav-left">
-    <div className="logo-circle" onClick={() => window.location.reload()}>
-      <img src={logoImg} alt="Athera Logo" className="logo-img" />
-    </div>
-  </div>
-
-  {/* CENTER — LINKS */}
-  <div className="nav-center">
-    <a href="#">Events</a>
-    <a href="#">About Us</a>
-    <a href="#">Contact</a>
-    <a onClick={handleAddToCart}>Add to Cart</a>
-  </div>
-
-  {/* RIGHT — ACTION BUTTONS */}
-  <div className="nav-right">
-    <a href="https://athera-hackathon.vercel.app/" className="hackathon-nav-btn" data-text="HACKATHON">
-      HACKATHON
-    </a>
-    <button className="reg-btn">Register</button>
-  </div>
-
-</nav>
+          <nav className="nav-bar">
+             <div className="nav-left">
+                <div className="logo-circle" onClick={() => window.location.reload()}>
+                   <img src={logoImg} alt="Athera Logo" className="logo-img" />
+                </div>
+             </div>
+             <div className="nav-center">
+                <a href="#">Events</a>
+                <a href="#">About Us</a>
+                <a href="#">Contact</a>
+                <a onClick={handleAddToCart}>Add to Cart</a>
+             </div>
+             <div className="nav-right">
+                <a href="https://athera-hackathon.vercel.app/" className="hackathon-nav-btn" data-text="HACKATHON">
+                   HACKATHON
+                </a>
+                <button className="reg-btn">Register</button>
+             </div>
+          </nav>
 
         <h1 className="hero-title">ATHERA</h1>
         <p className="hero-sub">The Digital Renaissance</p>
@@ -749,7 +520,6 @@ const Athera = () => {
           <div style={{ width: '1px', height: '4rem', background: 'linear-gradient(to bottom, #dc2626, transparent)' }}></div>
         </div>
 
-        {/* --- TRANSITION LAYER --- */}
         <div className="transition-blocks-layer" ref={blocksRef}>
           <div className="t-block"></div>
           <div className="t-block"></div>
@@ -757,26 +527,21 @@ const Athera = () => {
           <div className="t-block"></div>
           <div className="t-block"></div>
         </div>
-
       </section>
 
       {/* --- SECTION 2: MOTION --- */}
       <section id="motion-section" className="technical-grid">
-        
         <div className="sticky-text">
-            {/* --- ADDED CONTENT START --- */}
             <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ width: '8px', height: '8px', background: '#dc2626', borderRadius: '50%', display: 'inline-block' }}></span>
                 <span style={{ fontSize: '0.7rem', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Mission Protocol</span>
             </div>
-            {/* --- ADDED CONTENT END --- */}
 
             <p className="vision-main">
                 We don't just host events. We engineer <span style={{ fontWeight: 900, fontStyle: 'italic', color: '#dc2626' }}>movements.</span>
             </p>
 
-            {/* --- ADDED CONTENT START --- */}
-            <p style={{ marginTop: '2rem', fontSize: '1rem', color: '#a1a1aa', lineHeight: '1.6', maxWidth: '90%' }}>
+            <p style={{ marginTop: '2rem', fontSize: '1rem', color: '#a1a1aa', lineHeight: '1.6', maxWidth: '100%' }}>
                 Athera is the convergence point for minds that refuse to settle for the present. We are building the infrastructure for tomorrow's autonomous systems today.
             </p>
 
@@ -785,55 +550,29 @@ const Athera = () => {
                     Explore Our Vision
                 </button>
             </div>
-             {/* --- ADDED CONTENT END --- */}
         </div>
 
-        <h1 className="newses">WORKSHOPS</h1>
+        <h1 ref={workshopsTitleRef} className="newses">WORKSHOPS</h1>
 
         <div ref={diagonal1Ref} className="card-wrapper c1">
-          <img 
-            src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800" 
-            alt="Cybernetic Design" 
-            className="interactive-card"
-          />
-          <div className="card-meta">
-            <p className="card-label">Workshop 01</p>
-            <p className="card-title">CYBERNETIC DESIGN</p>
-          </div>
+          <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800" alt="Cybernetic Design" className="interactive-card"/>
+          <div className="card-meta"><p className="card-label">Workshop 01</p><p className="card-title">CYBERNETIC DESIGN</p></div>
         </div>
 
         <div ref={diagonal2Ref} className="card-wrapper c2">
-          {/* IMAGE REMOVED */}
-          <div className="card-meta right">
-            <p className="card-label"></p>
-            <p className="card-title"></p>
-          </div>
+           <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=800" alt="Hardware Hacking" className="interactive-card"/>
+           <div className="card-meta right"><p className="card-label">Workshop 02</p><p className="card-title">HARDWARE HACKING</p></div>
         </div>
-
-        {/* --- NEW 3RD CARD --- */}
-        <div ref={diagonal3Ref} className="card-wrapper c3">
-          <img 
-            src="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=800" 
-            alt="AI Agents" 
-            className="interactive-card"
-          />
-          <div className="card-meta">
-            <p className="card-label">Workshop 03</p>
-            <p className="card-title">AGENTIC SYSTEMS</p>
-          </div>
-        </div>
-
       </section>
 
-      {/* --- SECTION 3: IMMERSIVE WORLD --- */}
+      {/* --- SECTION 3: IMMERSIVE WORLD WRAPPER --- */}
       <div id="immersive-wrapper" ref={wrapperRef}>
         <div className="world-container" id="world" ref={worldRef}>
           
-          {/* PART 1: AGENTIC AI SPLIT (UPDATED) */}
+          {/* PART 1: AGENTIC AI SPLIT (New) */}
           <div className="imm-section" id="part1" ref={part1Ref}>
             <div className="inner-content split-layout" id="content1" ref={content1Ref}>
               
-              {/* LEFT: IMAGE */}
               <div className="split-image-wrapper">
                 <img 
                     src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800" 
@@ -842,16 +581,14 @@ const Athera = () => {
                 />
               </div>
 
-              {/* RIGHT: TEXT */}
               <div className="split-text-wrapper">
                 <span className="imm-tag">01 / Intelligence</span>
                 <h1 className="imm-h1">Agentic AI</h1>
                 <p style={{ color: '#ccc', lineHeight: 1.6, fontSize: '1.1rem' }}>
-                    
                     Beyond simple automation. AI agents that perceive, reason, and act to achieve complex goals without constant human intervention.
                 </p>
                 <div style={{ marginTop: '20px', borderLeft: '2px solid #dc2626', paddingLeft: '15px' }}>
-                    <p style={{ fontSize: '0.9rem', color: '#71717a' }}>AUTONOMY · REASONING · ACTION</p>
+                    {/* <p style={{ fontSize: '0.9rem', color: '#71717a' }}>AUTONOMY · REASONING · ACTION</p> */}
                 </div>
               </div>
 
@@ -861,12 +598,13 @@ const Athera = () => {
           {/* PART 2 */}
           <div className="imm-section" id="part2" ref={part2Ref}>
             <div className="inner-content" id="content2" ref={content2Ref}>
-                {/* Content for part 2 */}
+                 {/* REMOVED: "The Hive" and "Network" text content */}
             </div>
           </div>
 
         </div>
         
+        {/* Horizontal Text Overlay */}
         <div className="horizontal-quote" id="scrollingText" ref={scrollingTextRef}>
             {textQuote}
         </div>
@@ -877,14 +615,12 @@ const Athera = () => {
         <div className="footer-content">
           <div className="footer-top">
             
-            {/* BRAND */}
             <div style={{ maxWidth: '340px' }}>
               <p style={{ color: '#dc2626', fontWeight: 'bold', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.75rem' }}>ATHERA</p>
               <p style={{ color: '#71717a', fontSize: '0.85rem', lineHeight: 1.6 }}>AI & Technology Hub for Enhanced Research and Analytics</p>
               <p style={{ color: '#52525b', fontSize: '0.75rem', marginTop: '1rem' }}>Department of Computer Science and Engineering (AI & ML) <br /> Chennai Institute of Technology</p>
             </div>
 
-            {/* ABOUT */}
             <div className="footer-links">
               <h4>About ATHERA</h4>
               <ul>
@@ -896,49 +632,18 @@ const Athera = () => {
               </ul>
             </div>
 
-            {/* DOMAINS */}
-            <div className="footer-links">
+             <div className="footer-links">
               <h4>Domains</h4>
               <ul>
                 <li><a href="#">Agentic AI Systems</a></li>
                 <li><a href="#">Machine Learning</a></li>
                 <li><a href="#">Large Language Models</a></li>
-                <li><a href="#">Intelligent Automation</a></li>
-                <li><a href="#">Computer Vision</a></li>
-                <li><a href="#">Research & Analytics</a></li>
-              </ul>
-            </div>
-
-            {/* ACTIVITIES */}
-            <div className="footer-links">
-              <h4>Activities</h4>
-              <ul>
-                <li><a href="#">Workshops & Training</a></li>
-                <li><a href="#">Hands-on Projects</a></li>
-                <li><a href="#">Research Implementation</a></li>
-                <li><a href="#">Hackathons</a></li>
-                <li><a href="#">Open-Source</a></li>
-                <li><a href="#">Guest Lectures</a></li>
-              </ul>
-            </div>
-
-            {/* RESOURCES */}
-            <div className="footer-links">
-              <h4>Resources</h4>
-              <ul>
-                <li><a href="#">Learning Materials</a></li>
-                <li><a href="#">Project Showcase</a></li>
-                <li><a href="#">Research Publications</a></li>
-                <li><a href="#">Event Gallery</a></li>
-                <li><a href="#">Announcements</a></li>
               </ul>
             </div>
           </div>
 
-          {/* LARGE REVEAL TEXT */}
           <div className="footer-reveal-text">ATHERA</div>
 
-          {/* BOTTOM BAR */}
           <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', borderTop: '1px solid #18181b', paddingTop: '2rem', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.3em', color: '#3f3f46', gap: '1rem' }}>
             <h3>© 2025 ATHERA CLUB — ALL RIGHTS RESERVED</h3>
             <h3>Faculty Advisor: Dr. P. Karthikeyan · CSE (AIML)</h3>
