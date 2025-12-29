@@ -16,7 +16,6 @@ const Athera = () => {
   const wrapperRef = useRef(null);
   const worldRef = useRef(null);
   const audioRef = useRef(null);
-  const blocksRef = useRef(null);
   
   // Motion Section Refs
   const diagonal1Ref = useRef(null);
@@ -85,23 +84,49 @@ const Athera = () => {
     window.scrollTo(0, 0);
 
     const ctx = gsap.context(() => {
-      
-      // --- White Blocks Transition Animation ---
-      const blocks = blocksRef.current.querySelectorAll('.t-block');
-      gsap.to(blocks, {
-        y: "-100%",
-        stagger: 0.1,
-        ease: "none",
-        scrollTrigger: {
-          trigger: ".hero-section",
-          start: "top top",
-          end: "+=2000", 
-          scrub: true,
-          pin: true,
+      // --- 0. PRE-CALCULATE MASK DATA (For the Wipe) ---
+      const masks = gsap.utils.toArray('.mask');
+      const maskData = masks.map(() => ({
+        startOffset: 0.04 + Math.random() * 0.22,
+        speed: 0.269 + Math.random() * 0.331,
+        zone: Math.floor(Math.random() * 3),
+        delays: [0, 1, 2].map(idx => idx * 0.29 + Math.random() * 0.172)
+      }));
+      const getSliceOrder = (zone) => (zone === 0 ? [0, 1, 2] : zone === 1 ? [1, 0, 2] : [2, 1, 0]);
+
+      // --- 1. HERO PARALLELOGRAM WIPE (TRANSITION CORRECTED) ---
+      ScrollTrigger.create({
+        trigger: ".hero-section",
+        start: "top top",
+        end: "+=1500", 
+        pin: true,
+        scrub: 1,
+        refreshPriority: 1, 
+        onUpdate: (self) => {
+          const progress = self.progress;
+          
+          // Smoothly map opacity: 1 (start) to 0 (end) specifically for the transition finish
+          const transitionOpacity = gsap.utils.mapRange(0.85, 1, 1, 0, progress);
+
+          masks.forEach((mask, i) => {
+            const data = maskData[i];
+            const slices = mask.querySelectorAll("span");
+            const order = getSliceOrder(data.zone);
+            let local = Math.min(Math.max((progress - data.startOffset) * data.speed, 0), 1);
+            const eased = 1 - Math.pow(1 - local, 4); 
+
+            // Apply opacity to the entire mask group for a clean transition reveal
+            gsap.set(mask, { opacity: transitionOpacity });
+
+            order.forEach((sliceIndex, idx) => {
+              const sliceProgress = Math.max(0, eased - data.delays[idx]);
+              gsap.set(slices[sliceIndex], { height: `${Math.min(sliceProgress, 1) * 160}%` });
+            });
+          });
         }
       });
 
-      // --- 1. Diagonal Card 1 ---
+      // --- 2. DIAGONAL CARDS ---
       if (diagonal1Ref.current) {
         gsap.to(diagonal1Ref.current, {
           scrollTrigger: {
@@ -110,14 +135,13 @@ const Athera = () => {
             end: "bottom top",
             scrub: 1.5,
           },
-          x: -window.innerWidth * 0.4, 
+          x: -window.innerWidth * 0.4,
           y: -window.innerHeight * 1.5,
           rotation: -10,
           scale: 0.8
         });
       }
 
-      // --- 2. Diagonal Card 2 ---
       if (diagonal2Ref.current) {
         gsap.to(diagonal2Ref.current, {
           scrollTrigger: {
@@ -126,28 +150,27 @@ const Athera = () => {
             end: "bottom top",
             scrub: 1,
           },
-          x: window.innerWidth * 0.2, 
+          x: window.innerWidth * 0.2,
           y: -window.innerHeight * 1.8,
           rotation: 10,
           scale: 0.9
         });
       }
 
-      // --- 3. Workshops Title ---
       if (workshopsTitleRef.current) {
         gsap.to(workshopsTitleRef.current, {
-          x: -window.innerWidth * 1.5, 
+          x: -window.innerWidth * 1.5,
           ease: "none",
           scrollTrigger: {
             trigger: "#motion-section",
             start: "top bottom",
             end: "bottom top",
-            scrub: 1, 
+            scrub: 1,
           }
         });
       }
 
-      // --- 4. IMMERSIVE WORLD LOGIC (Modified for dynamic topics) ---
+      // --- 3. IMMERSIVE WORLD LOGIC ---
       const renderWorld = (p) => {
         const total = topics.length;
         const segment = 1 / total;
@@ -161,15 +184,14 @@ const Athera = () => {
           const end = (i + 1) * segment;
 
           if (p >= start && p <= end) {
-            const localP = (p - start) / segment; 
+            const localP = (p - start) / segment;
             sectionEl.style.opacity = 1;
             sectionEl.style.visibility = "visible";
 
-            // TRANSITION LOGIC
             let tx = 0, ty = 0;
-            if (i % 3 === 0) { tx = (1 - localP) * 150; ty = 0; } // Right to Left
-            else if (i % 3 === 1) { tx = (localP - 1) * 150; ty = 0; } // Left to Right
-            else { tx = (1 - localP) * 100; ty = (1 - localP) * 100; } // Diagonal
+            if (i % 3 === 0) { tx = (1 - localP) * 150; ty = 0; }
+            else if (i % 3 === 1) { tx = (localP - 1) * 150; ty = 0; }
+            else { tx = (1 - localP) * 100; ty = (1 - localP) * 100; }
 
             contentEl.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
             sectionEl.classList.add('active');
@@ -180,17 +202,16 @@ const Athera = () => {
           }
         });
 
-        // Text Logic
-        let textOpacity = p > 0.05 && p < 0.95 ? 1 : 0;
         if (scrollingTextRef.current) {
-          const textTransX = 120 - (p * 400); 
+          let textOpacity = p > 0.05 && p < 0.95 ? 1 : 0;
+          const textTransX = 120 - (p * 400);
           const targetVelocity = scrollSpeedRef.current;
           currentSkewRef.current = lerp(currentSkewRef.current, Math.max(Math.min(targetVelocity * 0.25, 20), -20), 0.1);
           
           gsap.set(scrollingTextRef.current, {
-             x: `${textTransX}vw`,
-             skewX: currentSkewRef.current,
-             opacity: textOpacity
+            x: `${textTransX}vw`,
+            skewX: currentSkewRef.current,
+            opacity: textOpacity
           });
         }
       };
@@ -198,11 +219,13 @@ const Athera = () => {
       ScrollTrigger.create({
         trigger: wrapperRef.current,
         start: "top top",
-        end: `+=${topics.length * 2000}`, 
+        end: `+=${topics.length * 2000}`,
         pin: true,
         scrub: 0.1,
         onUpdate: (self) => renderWorld(self.progress)
       });
+
+      ScrollTrigger.refresh();
 
     }, mainRef);
 
@@ -222,7 +245,7 @@ const Athera = () => {
       </video>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@300;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Inter:wght@300;900&display=swap');
 
         html.lenis { height: auto; }
         .lenis.lenis-smooth { scroll-behavior: auto; }
@@ -230,8 +253,7 @@ const Athera = () => {
 
         .athera-container { background-color: transparent; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; width: 100%; position: relative; }
         .fixed-bg-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; z-index: -1; pointer-events: none; }
-        .transition-blocks-layer { position: absolute; top: 100vh; left: 0; width: 100%; height: 100vh; display: flex; z-index: 5; pointer-events: none; }
-        .t-block { flex: 1; height: 100%; background: #000; transform: translateY(0); }
+        
         .nav-bar { position: fixed; top: 0; width: 100%; padding: 2.4rem 3rem; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-sizing: border-box; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
         .nav-left { position: absolute; left: 3rem; top: 50%; transform: translateY(-50%); }
         .nav-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; gap: 3rem; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.3em; font-weight: bold; }
@@ -249,7 +271,20 @@ const Athera = () => {
         .hackathon-nav-btn::after { color: #00ffff; transform: translateX(2px); }
         .hackathon-nav-btn:hover::before, .hackathon-nav-btn:hover::after { opacity: 1; animation: nav-glitch 0.35s steps(2, end) infinite; }
         @keyframes nav-glitch { 0% { clip-path: inset(15% 0 80% 0); } 50% { clip-path: inset(70% 0 15% 0); } 100% { clip-path: inset(0 0 0 0); } }
-        .hero-title { font-size: 12vw; font-weight: 900; font-style: italic; line-height: 1; letter-spacing: -0.05em; margin: 0; position: relative; z-index: 10; }
+        
+        .hero-title { 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 13vw; 
+            font-weight: 900; 
+            font-style: italic; 
+            line-height: 1; 
+            letter-spacing: -0.05em; 
+            margin: 0; 
+            position: relative; 
+            z-index: 10; 
+            text-transform: uppercase;
+        }
+
         .hero-sub { color: #dc2626; letter-spacing: 1.5em; font-size: 0.65rem; text-transform: uppercase; margin-top: 1rem; position: relative; z-index: 10; }
         .technical-grid { background-image: linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(circle, black 40%, transparent 95%); position: relative; min-height: 200vh; padding-top: 0; padding-bottom: 10rem; overflow: hidden; }
         .sticky-text { position: sticky; top: 50%; transform: translateY(-50%); margin-left: 5rem; width: 35%; z-index: 30; padding: 2.5rem; }
@@ -274,14 +309,55 @@ const Athera = () => {
         footer { background: #000; padding-top: 10rem; padding-bottom: 2.5rem; position: relative; border-top: 1px solid #18181b; }
         .footer-content { max-width: 1200px; margin: 0 auto; padding: 0 2.5rem; }
         .footer-top { display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 5rem; align-items: flex-end; }
-        .footer-reveal-text { font-size: 8vw; line-height: 0.8; font-weight: 900; font-style: italic; color: #1a1a1a; transition: color 0.5s ease; cursor: default; user-select: none; letter-spacing: -0.05em; }
+        
+        .footer-reveal-text { 
+            font-family: 'Orbitron', sans-serif;
+            font-size: 8vw; 
+            line-height: 0.8; 
+            font-weight: 900; 
+            font-style: italic; 
+            color: #1a1a1a; 
+            transition: color 0.5s ease; 
+            cursor: default; 
+            user-select: none; 
+            letter-spacing: -0.05em; 
+            text-transform: uppercase;
+        }
         .footer-container:hover .footer-reveal-text { color: #dc2626; }
         .footer-links ul { list-style: none; padding: 0; color: #52525b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; line-height: 2; }
         .footer-links a { color: inherit; text-decoration: none; transition: color 0.3s; }
         .footer-links a:hover { color: #dc2626; }
+
+        .mask {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            pointer-events: none;
+            transform: skewX(-12deg);
+            transform-origin: bottom;
+            z-index: 20; 
+            will-change: opacity;
+        }
+
+        .mask span {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background: #000; 
+            will-change: height;
+        }
+
+        .m1 { left: -15%; width: 35%; } 
+        .m2 { left: 15%;  width: 40%; } 
+        .m3 { left: 45%;  width: 40%; }
+        .m4 { left: 75%;  width: 35%; }
+
+        .mask span:nth-child(1) { bottom: 40%; }
+        .mask span:nth-child(2) { bottom: 0%; }
+        .mask span:nth-child(3) { bottom: 70%; }
       `}</style>
 
-      {/* --- SECTION 1: HERO --- */}
       <section className="hero-section" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <nav className="nav-bar">
              <div className="nav-left">
@@ -309,12 +385,12 @@ const Athera = () => {
           <div style={{ width: '1px', height: '4rem', background: 'linear-gradient(to bottom, #dc2626, transparent)' }}></div>
         </div>
 
-        <div className="transition-blocks-layer" ref={blocksRef}>
-          {[...Array(5)].map((_, i) => <div key={i} className="t-block"></div>)}
-        </div>
+        <div className="mask m1"><span></span><span></span><span></span></div>
+        <div className="mask m2"><span></span><span></span><span></span></div>
+        <div className="mask m3"><span></span><span></span><span></span></div>
+        <div className="mask m4"><span></span><span></span><span></span></div>
       </section>
 
-      {/* --- SECTION 2: MOTION --- */}
       <section id="motion-section" className="technical-grid">
         <div className="sticky-text">
             <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -338,7 +414,6 @@ const Athera = () => {
         </div>
       </section>
 
-      {/* --- SECTION 3: IMMERSIVE WORLD (NOW DYNAMIC) --- */}
       <div id="immersive-wrapper" ref={wrapperRef}>
         {topics.map((item, index) => (
           <div className="imm-section" id={`section-${index}`} key={index}>
@@ -357,53 +432,28 @@ const Athera = () => {
         <div className="horizontal-quote" ref={scrollingTextRef}>{textQuote}</div>
       </div>
 
-     {/* --- FOOTER --- */}
       <footer className="footer-container">
         <div className="footer-content">
           <div className="footer-top">
-            
             <div style={{ maxWidth: '340px' }}>
               <p style={{ color: '#dc2626', fontWeight: 'bold', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.75rem' }}>ATHERA</p>
               <p style={{ color: '#71717a', fontSize: '0.85rem', lineHeight: 1.6 }}>AI & Technology Hub for Enhanced Research and Analytics</p>
-              <p style={{ color: '#52525b', fontSize: '0.75rem', marginTop: '1rem' }}>Department of Computer Science and Engineering (AI & ML) <br /> Chennai Institute of Technology</p>
             </div>
-
             <div className="footer-links">
               <h4>About ATHERA</h4>
               <ul>
                 <li><a href="#">About the Club</a></li>
                 <li><a href="#">Vision & Mission</a></li>
-                <li><a href="#">Faculty Advisors</a></li>
-                <li><a href="#">Core Team</a></li>
-                <li><a href="#">Student Members</a></li>
-              </ul>
-            </div>
-
-             <div className="footer-links">
-              <h4>Domains</h4>
-              <ul>
-                <li><a href="#">Agentic AI Systems</a></li>
-                <li><a href="#">Machine Learning</a></li>
-                <li><a href="#">Large Language Models</a></li>
               </ul>
             </div>
           </div>
-
           <div className="footer-reveal-text">ATHERA</div>
-
-          <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', borderTop: '1px solid #18181b', paddingTop: '2rem', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.3em', color: '#3f3f46', gap: '1rem' }}>
-            <h3>© 2025 ATHERA CLUB — ALL RIGHTS RESERVED</h3>
-            <h3>Faculty Advisor: Dr. P. Karthikeyan · CSE (AIML)</h3>
-            <p>
-              <a href="#" style={{ marginRight: '1rem' }}>LinkedIn</a>
-              <a href="#" style={{ marginRight: '1rem' }}>Instagram</a>
-              <a href="#">GitHub</a>
-            </p>
+          <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #18181b', paddingTop: '2rem', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.3em', color: '#3f3f46' }}>
+            <h3>© 2025 ATHERA CLUB</h3>
+            <p><a href="#">LinkedIn</a> · <a href="#">Instagram</a></p>
           </div>
-
         </div>
       </footer>
-
     </div>
   );
 };
