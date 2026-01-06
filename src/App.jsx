@@ -51,14 +51,17 @@ const Athera = () => {
   // --- SMOOTH SCROLL SETUP (LENIS) ---
   useLayoutEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      // --- CONTROL GLOBAL SPEED HERE ---
+      duration: 2.0, // Higher = Smoother/Slower stop (Default is ~1.2)
+      wheelMultiplier: 0.7, // Lower = Slower scroll speed (Default is 1)
+      touchMultiplier: 1.5, // Control touch speed separately
+      
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
       smooth: true,
       mouseMultiplier: 1,
       smoothTouch: false,
-      touchMultiplier: 2,
     });
 
     lenis.on('scroll', (e) => {
@@ -89,7 +92,9 @@ const Athera = () => {
 
     const ctx = gsap.context(() => {
       
-      // --- SPEED CONTROL CONSTANT ---
+      // --- SPEED CONTROL CONSTANT (ANIMATION DURATION) ---
+      // Lower this number (e.g., 2000) to make the horizontal section FASTER.
+      // Increase this number (e.g., 6000) to make the horizontal section SLOWER.
       const SCROLL_PER_PHASE = 4000; 
 
       // --- Parallelogram Wipe Logic ---
@@ -272,6 +277,7 @@ const Athera = () => {
             
             gsap.set(scrollingTextRef.current, {
                x: currentX,
+               yPercent: -50, 
                skewX: currentSkewRef.current,
                opacity: textOpacity,
                visibility: "visible",
@@ -289,10 +295,9 @@ const Athera = () => {
       ScrollTrigger.create({
         trigger: wrapperRef.current,
         start: "top top",
-        // UPDATED: Using SCROLL_PER_PHASE constant (4000) instead of 1500
         end: `+=${(topics.length + 1) * SCROLL_PER_PHASE}`, 
         pin: true,
-        scrub: 0, 
+        scrub: 1, // CHANGED: Set to 1 to smoothen the animation sync
         onUpdate: (self) => renderWorld(self.progress)
       });
 
@@ -450,7 +455,7 @@ const Athera = () => {
         /* --- UPDATED HORIZONTAL TEXT CSS --- */
         .horizontal-quote { 
             position: absolute; 
-            top: 70%; 
+            top: 50%; /* <--- CHANGED: Center vertically */
             left: 0; 
             font-size: 7vw; 
             white-space: nowrap; 
@@ -591,7 +596,7 @@ const Athera = () => {
             /* --- UPDATED MOBILE HORIZONTAL TEXT --- */
             .horizontal-quote { 
                 font-size: 10vw; 
-                top: 60%; 
+                top: 50%; /* <--- CHANGED: Center vertically on mobile too */
                 border-left: 10px solid #dc2626; /* Slightly thinner red strip for mobile */
                 padding: 0.5rem 1.5rem; 
             }
