@@ -710,50 +710,70 @@ const Athera = () => {
       </div>
 
      {/* --- FOOTER --- */}
-      <footer className="footer-container">
-        <div className="footer-content">
-          <div className="footer-top">
-            <div style={{ maxWidth: '340px' }}>
-              <p style={{ color: '#838396ff', fontSize: '0.9rem', lineHeight: 1.6 }}>AI & Technology Hub for Enhanced Research and Analytics</p>
-              <p style={{ color: '#838396ff', fontSize: '0.9rem', marginTop: '1rem' }}>Department of Computer Science and Engineering (AI & ML) <br /> Chennai Institute of Technology</p>
-            </div>
+     {/* --- FOOTER --- */}
+<footer className="footer-container">
+  <div className="footer-content">
 
-            <div className="footer-links">
-              <h4>About ATHERA</h4>
-              <ul>
-                <li><a href="#">About the Club</a></li>
-                <li><a href="#">Vision & Mission</a></li>
-                <li><a href="#">Faculty Advisors</a></li>
-                <li><a href="#">Core Team</a></li>
-                <li><a href="#">Student Members</a></li>
-              </ul>
-            </div>
+    <div className="footer-top">
 
-             <div className="footer-links">
-              <h4>Domains</h4>
-              <ul>
-                <li><a href="#">Agentic AI Systems</a></li>
-                <li><a href="#">Machine Learning</a></li>
-                <li><a href="#">Large Language Models</a></li>
-              </ul>
-            </div>
-          </div>
+      {/* About / Identity */}
+      <div style={{ maxWidth: '360px' }}>
+        <p style={{ color: '#838396ff', fontSize: '0.9rem', lineHeight: 1.6 }}>
+          <strong>About Us – ATHERA</strong><br />
+          ATHERA (AI & Technology Hub for Enhanced Research and Analytics) is a
+          student-driven initiative under the Department of CSE (AI & ML),
+          focused on fostering innovation, research, and practical skill
+          development in emerging technologies.
+        </p>
 
-          <div className="footer-reveal-text">ATHERA</div>
+        <p style={{ color: '#838396ff', fontSize: '0.9rem', marginTop: '1rem' }}>
+          Department of Computer Science and Engineering (AI & ML) <br />
+          Chennai Institute of Technology
+        </p>
+      </div>
 
-          <div className="footer-bottom">
-            <h3>© 2025 ATHERA CLUB — ALL RIGHTS RESERVED</h3>
-            <h3>Faculty Advisor: Dr. P. Karthikeyan · CSE (AIML)</h3>
-            <p>
-              <a href="#" style={{ marginRight: '1rem' }}>LinkedIn</a>
-              <a href="#" style={{ marginRight: '1rem' }}>Instagram</a>
-              <a href="#">GitHub</a>
-            </p>
-          </div>
+      {/* About Links */}
+      <div className="footer-links">
+        <h4>About ATHERA</h4>
+        <ul>
+          <li><a href="#">About the Club</a></li>
+          <li><a href="#">Vision & Mission</a></li>
+          <li><a href="#">Faculty Advisors</a></li>
+          <li><a href="#">Core Team</a></li>
+          <li><a href="#">Student Members</a></li>
+        </ul>
+      </div>
 
-        </div>
-      </footer>
+      {/* Domains */}
+      <div className="footer-links">
+        <h4>Domains</h4>
+        <ul>
+          <li><a href="#">Agentic AI Systems</a></li>
+          <li><a href="#">Machine Learning</a></li>
+          <li><a href="#">Large Language Models</a></li>
+        </ul>
+      </div>
 
+    </div>
+
+    {/* Big Reveal Text */}
+    <div className="footer-reveal-text">ATHERA</div>
+
+    {/* Bottom Section */}
+    <div className="footer-bottom">
+      <h3>© 2025 ATHERA CLUB — ALL RIGHTS RESERVED</h3>
+      <h3>Faculty Advisor: Dr. P. Karthikeyan · CSE (AIML)</h3>
+
+      <p>
+        <a href="#" style={{ marginRight: '1rem' }}>LinkedIn</a>
+        <a href="#" style={{ marginRight: '1rem' }}>Instagram</a>
+        <a href="#" style={{ marginRight: '1rem' }}>Email</a>
+
+      </p>
+    </div>
+
+  </div>
+</footer>
     </div>
   );
 };
